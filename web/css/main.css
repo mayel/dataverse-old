@@ -1,0 +1,50 @@
+html, body, .contain-all {
+    height: 100%;
+}
+
+body, .form-control {
+	font-size:16pt;
+}
+
+.table {
+	font-size:10pt;
+}
+
+.control-label{
+	width: 100%;
+	font-weight: bold;
+}
+
+.form-control, .select2-container, .select2-selection {
+	height: auto !important;
+	line-height: 150%;
+}
+
+select.form-control {
+	margin: 2px;
+	font-size: 0.9em;
+}
+
+input[type=radio], input[type=checkbox] {
+    border: 0px;
+    width: 0.8em;
+    height: 0.8em;
+}
+
+#form input.form-control, #form textarea {
+	padding: .45em .9em;
+	width: 100%;
+	line-height: 160%;
+	border: 2px dashed #ddd !important;
+}
+
+#form input.fieldtype-Phone{
+	padding-left: 52px !important;
+}
+
+#form .fieldtype-DateAndTime input {
+	max-width: 240px;
+}
+#form .fieldtype-DateAndTime input[type=time] {
+	max-width: 140px;
+}

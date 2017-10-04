@@ -1,0 +1,43 @@
+{% extends "layout.html.twig" %}
+
+{% form_theme form with ['bootstrap_3_layout.html.twig', _self] %}
+
+{% block content %}
+
+
+<div class="row justify-content-md-center h-100" >
+  <div class="col col-md-6  my-auto">
+  	
+  	
+  	<form action="?" method="post" enctype="multipart/form-data" class="">
+  	    
+  	      
+  	    {{ form_widget(form) }}
+  	    
+  	    
+  	    
+  	    {{ output_code|raw }}
+  	    
+  	    
+      <div class="form-group">
+       	
+       	 <button type="submit" id="form_save" class="btn-success btn-lg btn">Continue</button>
+       </div>
+       
+      <div class="form-group">
+       
+       	{% if current_step %}
+       	    <a href="?before={{current_step|e}}" id="back" class="btn-sm btn btn-info">Back</a>
+       	    
+       	    <a href="?after={{current_step|e}}" id="skip" class="btn-sm btn btn-warning">Skip</a>
+       	{% endif %}
+
+      	
+      </div>
+  	</form>
+  	
+  </div>
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,44 @@
+
+// PAGE INIT
+$(document).ready(function() {
+	
+	$('.select2').select2();
+	
+	var pw_field = $(".fieldtype-Password");
+	
+	if(pw_field.length) $(pw_field).hideShowPassword(false, true);
+	
+	var phone_field = $(".fieldtype-Phone");
+	
+	if(phone_field.length) $(phone_field).intlTelInput({
+	  nationalMode: false,
+	  initialCountry: "auto",
+	  geoIpLookup: function(callback) {
+	    $.get('http://ipinfo.io', function() {}, "jsonp").always(function(resp) {
+	      var countryCode = (resp && resp.country) ? resp.country : "";
+	      callback(countryCode);
+	    });
+	  }
+	});
+	 
+	$("#form_language").select2({
+	  ajax: {
+	    url: function (params) {
+	      return "https://alpha.getacross.org/api/v2/languages/autocomplete?via=select2";
+	    },
+	    dataType: 'json',
+	    data: function (params) {
+	      return {
+	        q: params.term, // search term
+	      };
+	    },
+	   delay: 250,
+	   cache: true
+	 },
+	  minimumInputLength: 0,
+	  tags: false,
+	  allowClear: true,
+	  placeholder: "Start typing your language & select it",
+	});
+	
+});

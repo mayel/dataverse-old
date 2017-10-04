@@ -1,0 +1,53 @@
+<link rel="stylesheet" href="/css/sortable.css" />
+
+
+<ul id="sortable" class="clearfix">
+   
+   <?php 
+   global $choices, $choice_link;
+   foreach($choices as $key=>$val){ ?>
+   		<li data-id="<?=$key?>">
+   			<?=$val?>
+   			<?php if($choice_link){ ?>
+   				<a href="<?=$choice_link.$key?>" class="btn btn-sm float-right"><i class="fa fa-link" aria-hidden="true"></i></a>
+   			<?php } ?>
+   		</li>
+   <?php } ?>
+   
+</ul>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-sortable/0.9.13/jquery-sortable-min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+
+var group = $('#sortable').sortable({
+	axis: 'y',
+	group: 'serialization',
+	delay: 50,
+	nested: false,
+	onDrop: function ($item, container, _super) {
+		
+		var list = group.sortable("serialize").get();
+		
+		var data = {};
+		data.sortable = list[0];
+		
+		console.log(data);
+		
+		var jsonString = JSON.stringify(data, null, ' ');
+		
+		console.log(jsonString);
+		
+		$.ajax({
+            data: jsonString,
+            type: 'POST',
+            url: '?'
+        });
+		
+		_super($item, container);
+	}
+});
+
+});
+</script>
