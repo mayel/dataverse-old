@@ -108,14 +108,14 @@ $app->match('/question', function (Request $request) use ($app) {
 
 		$bv->from_step = isset($_GET['before']) ? $_GET['before'] : $app['session']->get('current_step'); // get from session
 
-		$bv->question = R::findOne( 'question', ' questionnaire_id = ? AND step < ? ORDER BY step DESC LIMIT 1 ', [$bv->questionnaire->id, $bv->from_step] );
+		$bv->question = R::findOne( 'question', ' questionnaire_id = ? AND step < ? ORDER BY step DESC LIMIT 1 ', [intval($bv->questionnaire->id), intval($bv->from_step)] );
 
 	}
 
 
 	if(!$bv->question && is_numeric($bv->question_id)){
 
-		$bv->question = R::load( 'question', $bv->question_id );
+		$bv->question = R::load( 'question', intval($bv->question_id) );
 
 		$bv->questionnaire = $bv->question->questionnaire; // get from table
 
@@ -123,7 +123,7 @@ $app->match('/question', function (Request $request) use ($app) {
 
 	if(!$bv->question->id) {
 
-		$bv->question = R::findOne( 'question', 'questionnaire_id = ?  ORDER BY step ASC LIMIT 1 ', [$bv->questionnaire->id] );
+		$bv->question = R::findOne( 'question', 'questionnaire_id = ?  ORDER BY step ASC LIMIT 1 ', [intval($bv->questionnaire->id)] );
 	}
 
 	$bv->question_id = $bv->question->id;
@@ -145,7 +145,7 @@ $app->match('/question', function (Request $request) use ($app) {
 	//var_dump($form_builder);
 	// ($bv->response ? $bv->response : $data)
 
-	//foreach ($list_questions as $bv->question) { 
+	//foreach ($list_questions as $bv->question) {
 		//print_r($bv->question);
 
 		$field_label = $bv->question->question_text ? $bv->question->question_text : $bv->question->question_name;
