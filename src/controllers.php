@@ -31,6 +31,7 @@ include_once('ctrl/bots.php');
 
 include_once('ctrl/build.php');
 
+include_once('ctrl/browse.php');
 
 include_once('ctrl/dev.php');
 
