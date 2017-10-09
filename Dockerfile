@@ -82,15 +82,15 @@ RUN ln -s /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/defau
 COPY ./config/supervisord.conf /etc/supervisord.conf
 
 # Prepare script
-COPY ./config/cmd.sh /
-RUN chmod 755 /cmd.sh
+COPY ./config/docker_prepare.sh /
+RUN chmod 755 /docker_prepare.sh
 
 # add test PHP file
 COPY ./index.php ${NGINX_ROOT}/index.php
 RUN chown -Rf www-data.www-data ${NGINX_ROOT}
 
-#RUN composer install --no-dev --no-interaction -o
+RUN composer install --no-dev --no-interaction -o
 
 # Expose Ports
 EXPOSE 80
-CMD ["/bin/bash", "/cmd.sh"]
+CMD ["/bin/bash", "/docker_prepare.sh"]
