@@ -89,7 +89,7 @@ RUN chmod 755 /docker_prepare.sh
 COPY ./index.php ${NGINX_ROOT}/index.php
 RUN chown -Rf www-data.www-data ${NGINX_ROOT}
 
-RUN composer install --no-dev --no-interaction -o
+#RUN composer install --no-dev --no-interaction -o
 
 # Expose Ports
 EXPOSE 80

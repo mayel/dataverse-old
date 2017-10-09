@@ -22,9 +22,13 @@ sed -i -e "s#%%NGINX_ROOT%%#$NGINX_ROOT#" /etc/nginx/sites-available/default.con
 sed -i -e "s#%%IMAGE_PHP_VERSION%%#$IMAGE_PHP_VERSION#" /etc/nginx/sites-available/default.conf
 
 # Again set the right permissions (needed when mounting from a volume)
-set +e 
+set +e
 chown -Rf www-data.www-data $NGINX_ROOT
 set -e
 
+cd $NGINX_ROOT
+sudo -u www-data composer install --no-dev --no-interaction -o
+
 # Start supervisord and services
 exec /usr/bin/supervisord -n -c /etc/supervisord.conf
+
