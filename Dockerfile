@@ -9,6 +9,7 @@ RUN ln -sf /bin/true /sbin/initctl
 ENV DEBIAN_FRONTEND noninteractive
 
 # doc root path
+ENV APP_ROOT="/home/app/"
 ENV NGINX_ROOT="/home/app/web"
 # display PHP errors
 ENV ERRORS=0
@@ -64,9 +65,6 @@ RUN sed -i -e "s/;listen.mode = 0660/listen.mode = 0750/g" /etc/php/${IMAGE_PHP_
 find /etc/php/${IMAGE_PHP_VERSION}/cli/conf.d/ -name "*.ini" -exec sed -i -re 's/^(\s*)#(.*)/\1;\2/g' {} \; && \
 mkdir /run/php
 
-# mcrypt conf
-RUN phpenmod mcrypt
-
 # nginx site conf
 RUN rm -Rf /etc/nginx/conf.d/* && \
 rm -Rf /etc/nginx/sites-available/default && \
@@ -85,9 +83,10 @@ COPY ./config/supervisord.conf /etc/supervisord.conf
 COPY ./config/docker_prepare.sh /
 RUN chmod 755 /docker_prepare.sh
 
-# add test PHP file
-COPY ./index.php ${NGINX_ROOT}/index.php
-RUN chown -Rf www-data.www-data ${NGINX_ROOT}
+# add app files
+RUN mkdir -p ${APP_ROOT}
+COPY ./ ${APP_ROOT}
+RUN chown -Rf www-data.www-data ${APP_ROOT}
 
 #RUN composer install --no-dev --no-interaction -o
 

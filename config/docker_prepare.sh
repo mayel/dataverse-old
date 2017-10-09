@@ -23,10 +23,10 @@ sed -i -e "s#%%IMAGE_PHP_VERSION%%#$IMAGE_PHP_VERSION#" /etc/nginx/sites-availab
 
 # Again set the right permissions (needed when mounting from a volume)
 set +e
-chown -Rf www-data.www-data $NGINX_ROOT
+chown -Rf www-data.www-data $APP_ROOT
 set -e
 
-cd $NGINX_ROOT
+cd $APP_ROOT
 sudo -u www-data composer install --no-dev --no-interaction -o
 
 # Start supervisord and services
