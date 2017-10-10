@@ -13,7 +13,7 @@ Within the container, the app is in `/home/app` and the public web root is `/hom
 
 Your custom config directory (including a file named `config/secrets.php` based on `config/secrets.sample.php`, with your DB config & other secrets) should be mounted to `/home/app/custom`:
 
-  `docker build -t dataverse . && docker run -d -p 8080:80 --mount type=bind,source="/path/to/your/custom/directory",target=/home/app/custom dataverse`
+  `docker build -t dataverse . && docker run -d -p 8080:80 --mount type=bind,source="/path/to/your/custom_directory",target=/home/app/custom dataverse`
 
 
 
