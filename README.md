@@ -7,15 +7,14 @@ Dataverse is a user-friendly tool for creating conversational forms that can als
 
 There's a Dockerfile to configure nginx and php-fpm together, and Composer. Database server is not included for flexibility (so you can choose to use SQLite, MySQL, or Postgres).
 
-Within the container, the app is in `/home/app/web` and the public web root is `/home/app/web`.
+Some variables can be set in Dockerfile, such as `ERRORS` to toggle error reporting: `ERRORS=1` will display PHP errors in the browser.
 
-Your custom config file, with your DB config & other secrets should be mounted to `/home/app/custom`:
+Within the container, the app is in `/home/app` and the public web root is `/home/app/web` which will be served on port 80.
+
+Your custom config directory (including a file named `config/secrets.php` based on `config/secrets.sample.php`, with your DB config & other secrets) should be mounted to `/home/app/custom`:
 
   `docker build -t dataverse . && docker run -d -p 8080:80 --mount type=bind,source="/path/to/your/custom/directory",target=/home/app/custom dataverse`
 
-An `ERRORS` env can be set to toggle error reporting: `ERRORS=1` will display PHP errors.
-
-Besides the Dockerfile, check out `config/docker_prepare.sh` to see what happens (run automatically).
 
 
 ### Without Docker ###

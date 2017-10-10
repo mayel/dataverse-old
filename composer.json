@@ -1,7 +1,7 @@
 {
-    "name": "fabpot/silex-skeleton",
-    "description": "A pre-configured skeleton for the Silex microframework",
-    "license": "MIT",
+    "name": "mayel/dataverse",
+    "description": "Dataverse is a user-friendly tool for creating conversational forms that can also be accessed as chatbots, which store their data in dynamic databases.",
+    "license": "AGPL",
     "type": "project",
     "require": {
         "php": ">=5.5.9",
@@ -22,13 +22,9 @@
         "symfony/translation": "~2.8|^3.0",
         "symfony/twig-bridge": "~2.8|^3.0",
         "symfony/validator": "~2.8|^3.0",
-
         "symfony/cache": "^3.2",
-        
         "gabordemooij/redbean": "^4.3",
-
         "mpociot/botman": "^1.5",
-
         "mailgun/mailgun-php": "^2.3",
         "egulias/email-validator": "^2.1",
         "php-http/guzzle6-adapter": "^1.1",
@@ -36,7 +32,6 @@
         "kosinix/paginator": "dev-master",
         "kosinix/pagination-silex": "dev-master",
         "league/csv": "^8.2"
-         
     },
     "autoload": {
         "psr-0": { "": "src/" }
