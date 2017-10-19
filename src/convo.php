@@ -3,7 +3,7 @@
 function item_save($table_name = 'item', $data = [], $custom_linked_items=false) { // save object in DB, with support for many to many for items with array of data
 	global $bv;
 
-	//print_r($data); 
+	//print_r($data);
 
 	if(!$bv->item) $bv->item = R::dispense( $table_name );
 
@@ -374,6 +374,16 @@ function questionnaire_questions($id) {
 
 function question_get($id) {
 	return data_by_id( 'question', $id );
+}
+
+function respondent_get($id) {
+	global $bv;
+	return data_by_id( $bv->table_respondent, $id );
+}
+
+function respondent_find($val, $field='email') {
+	global $bv;
+	return R::findOne( $bv->table_respondent, $field.' = ? ', [ $val ]  );
 }
 
 function answer_get($id) {
