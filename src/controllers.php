@@ -37,6 +37,8 @@ include_once('ctrl/api.php');
 
 include_once('ctrl/dev.php');
 
+include_once('admin/data.php');
+include_once('admin/db.php');
 
 $app->error(function (\RedBeanPHP\RedException\SQL $e, Request $request, $code) {
     //echo "REDBEAN DEBUG E $e <p>R $request <p>code $code<p>";
