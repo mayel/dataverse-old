@@ -3,21 +3,34 @@ use Symfony\Component\HttpFoundation\Request;
 
 use Kosinix\Pagination;
 
-$app->get('/admin/'.$bv->config->admin_token.'/{page}/{sort_by}/{sorting}', function (Request $request, $page, $sort_by, $sorting) use ($app) {
+$app->get('/admin/{page}/{sort_by}/{sorting}', function (Request $request, $page, $sort_by, $sorting) use ($app) {
+	global $bv;
 
-	$questionnaire_id = 2;
+	admin_auth();
 
-    $count = (int) R::count( 'respondent', ' questionnaire_id = ? AND email IS NOT NULL ', [ $questionnaire_id ] );
+	$bv->questionnaire_id = $_GET['questionnaire'] ? $_GET['questionnaire'] : $app['session']->get('questionnaire'); // get from session
 
-	//var_dump($count, $page, $sort_by, strtoupper($sorting));
+	if(!$bv->questionnaire_id) $bv->questionnaire_id = 2;
 
-    /** @var \Kosinix\Paginator $paginator */
-    $paginator =  $app['paginator']($count, $page);
+  $count = (int) R::count( 'respondent', ' questionnaire_id = ? AND email IS NOT NULL ', [ $bv->questionnaire_id ] );
 
+	if($count>0){
 
-    if($count) $people = R::find( 'respondent', ' questionnaire_id = ? AND email IS NOT NULL
-    ORDER BY ? ?
-    LIMIT ? , ? ', [ 2,  $sort_by, strtoupper($sorting), $paginator->getStartIndex(), $paginator->getPerPage() ] );
+	$app['session']->set('questionnaire', $bv->questionnaire_id); // save as session
+
+  /** @var \Kosinix\Paginator $paginator */
+  $paginator =  $app['paginator']($count, $page);
+
+	$limits = ($bv->db_type == 'postgres' ? ' LIMIT ? OFFSET ? ' : ' LIMIT ? , ? ');
+
+	if($bv->db_type == 'postgres') $params = [ $bv->questionnaire_id,  $sort_by, $paginator->getPerPage(), $paginator->getStartIndex() ];
+	else $params = [ $bv->questionnaire_id,  $sort_by, $paginator->getStartIndex(), $paginator->getPerPage() ];
+
+	// var_dump($count, $page, $sort_by, strtoupper($sorting), $limits, $params);
+
+  if($count) $people = R::find( 'respondent', ' questionnaire_id = ? AND email IS NOT NULL
+  ORDER BY ?
+  '.$limits,  $params);
 
 	foreach ($people as $p) {
 		$responses = R::find( 'response', ' respondent_id = ?
@@ -83,11 +96,12 @@ $app->get('/admin/'.$bv->config->admin_token.'/{page}/{sort_by}/{sorting}', func
         'items' => $people,
         'pagination' => $pagination
     ));
+	}
 })
 ->value('page', 1)
 ->value('sort_by', 'ts_started')
 ->value('sorting', 'desc')
-->assert('page', '\d+') // Numbers only 
+->assert('page', '\d+') // Numbers only
 ->assert('sort_by','[a-zA-Z_]+') // Match a-z, A-Z, and "_"
 ->assert('sorting','(\basc\b)|(\bdesc\b)') // Match "asc" or "desc"
 ->bind('admin/list');

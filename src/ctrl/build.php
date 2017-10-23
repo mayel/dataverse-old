@@ -22,6 +22,7 @@ $app['my.formFactory'] = Forms::createFormFactoryBuilder()
 
 $app->match('/build/', function (Request $request) use ($app) {
 
+  admin_auth();
 
 	$bv->page_title = "Questionnaires";
 
@@ -36,14 +37,16 @@ $app->match('/build/', function (Request $request) use ($app) {
 
 $app->match('/build/questionnaire', function (Request $request) use ($app) {
 
-	global $bv, $choices, $choice_link;
+	admin_auth();
+
+  global $bv, $choices, $choice_link;
 
 
 	if(!isset($_GET['new'])){
 
 		$bv->page_title = "Edit Questionnaire";
 
-		$bv->questionnaire_id = $_GET['id'] ? $_GET['id'] : $app['session']->get('questionnaire'); // get from session 
+		$bv->questionnaire_id = $_GET['id'] ? $_GET['id'] : $app['session']->get('questionnaire'); // get from session
 
 		if($bv->questionnaire_id) $bv->questionnaire = questionnaire_get($bv->questionnaire_id);
 
@@ -157,6 +160,8 @@ $app->match('/build/questionnaire', function (Request $request) use ($app) {
 $app->match('/build/question', function (Request $request) use ($app) {
 
 	global $bv;
+
+  admin_auth();
 
 	$bv->questionnaire_id = $_GET['questionnaire'] ? $_GET['questionnaire'] : $app['session']->get('questionnaire'); // get from session
 
@@ -298,6 +303,8 @@ $app->match('/build/question', function (Request $request) use ($app) {
 $app->match('/build/action', function (Request $request) use ($app) {
 
 	global $bv;
+
+  admin_auth();
 
 	$bv->questionnaire_id = $_GET['questionnaire'] ? $_GET['questionnaire'] : $app['session']->get('questionnaire'); // get from session
 

@@ -59,3 +59,13 @@ function sanitize_user( $username, $no_spaces = true, $lower=false ) {
 
 	return $username;
 }
+
+function admin_auth(){
+	global $bv, $app;
+
+	$bv->user_token = $_GET['token'] ? $_GET['token'] : $app['session']->get('user_token'); // get from session
+
+	if($bv->user_token !=$bv->config->admin_token) exit("Unauthorized!"); // no good
+
+	$app['session']->set('user_token', $bv->user_token); // OK, save as session
+}
