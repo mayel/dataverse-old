@@ -3,7 +3,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 use Kosinix\Pagination;
 
-$app->get('/admin/{page}/{sort_by}/{sorting}', function (Request $request, $page, $sort_by, $sorting) use ($app) {
+$app->get('/admin/members/{page}/{sort_by}/{sorting}', function (Request $request, $page, $sort_by, $sorting) use ($app) {
 	global $bv;
 
 	admin_auth();
@@ -104,4 +104,4 @@ $app->get('/admin/{page}/{sort_by}/{sorting}', function (Request $request, $page
 ->assert('page', '\d+') // Numbers only
 ->assert('sort_by','[a-zA-Z_]+') // Match a-z, A-Z, and "_"
 ->assert('sorting','(\basc\b)|(\bdesc\b)') // Match "asc" or "desc"
-->bind('admin/list');
+->bind('admin/members');
