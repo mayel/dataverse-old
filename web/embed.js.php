@@ -1,5 +1,6 @@
 <?php
 require_once('../config/secrets.php');
+global $bv;
 header('Content-Type: application/javascript');
 ?>
 
@@ -8,7 +9,7 @@ function load_form() {
 	  .attr('type','text/css')
 	  .attr('href',"<?=$bv->config->home_url?>css/embed.css")
 	  .appendTo('head');
-	  
+
 	$('body').append(
 	  $('<div/>')
 	    .attr("id", "form_black_out")
