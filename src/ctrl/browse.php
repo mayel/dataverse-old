@@ -90,7 +90,7 @@ $app->get('/admin/members/{page}/{sort_by}/{sorting}', function (Request $reques
 
 	}
 
-    $pagination = new Pagination($paginator, $app['url_generator'], 'admin/list', $sort_by, $sorting);
+    $pagination = new Pagination($paginator, $app['url_generator'], 'admin/members', $sort_by, $sorting);
 
     return $app['twig']->render('table.html.twig', array(
         'items' => $people,
