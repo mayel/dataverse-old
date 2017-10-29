@@ -11,7 +11,7 @@ Some variables can be set in Dockerfile, such as `ERRORS` to toggle error report
 
 Within the container, the app is in `/home/app` and the public web root is `/home/app/web` which will be served on port 80.
 
-Your custom config directory (including a file named `config/secrets.php` based on `config/secrets.sample.php`, with your DB config & other secrets) should be mounted to `/home/app/custom`:
+Your custom config directory (start by copying `config/secrets.sample.php` to that directory, rename to `secrets.php`, and configure with your DB details, etc) should be mounted as `/home/app/custom`:
 
   `docker build -t dataverse . && docker run -d -p 8080:80 --mount type=bind,source="/path/to/your/custom_directory",target=/home/app/custom dataverse`
 
