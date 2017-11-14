@@ -4,9 +4,51 @@ use Symfony\Component\HttpFoundation\Request;
 use Kosinix\Pagination;
 
 $app->get('/admin/members/{page}/{sort_by}/{sorting}', function (Request $request, $page, $sort_by, $sorting) use ($app) {
-	global $bv;
+	global $bv, $paginator, $app;
 
 	admin_auth();
+
+	$people = respondents_browse($page, $sort_by, $sorting);
+
+  if($people) $pagination = new Pagination($paginator, $app['url_generator'], 'admin/members', $sort_by, $sorting);
+
+  return $app['twig']->render('table-admin.html.twig', array(
+      'items' => $people,
+      'pagination' => $pagination
+  ));
+})
+->value('page', 1)
+->value('sort_by', 'ts_started')
+->value('sorting', 'desc')
+->assert('page', '\d+') // Numbers only
+->assert('sort_by','[a-zA-Z_]+') // Match a-z, A-Z, and "_"
+->assert('sorting','(\basc\b)|(\bdesc\b)') // Match "asc" or "desc"
+->bind('admin/members');
+
+$app->get('/browse/{page}/{sort_by}/{sorting}', function (Request $request, $page, $sort_by, $sorting) use ($app) {
+	global $bv, $paginator, $app;
+
+	if(!member_auth(false)) admin_auth(true);
+
+	$people = respondents_browse($page, $sort_by, $sorting);
+
+  if($people) $pagination = new Pagination($paginator, $app['url_generator'], 'browse', $sort_by, $sorting);
+
+  return $app['twig']->render('table-members.html.twig', array(
+      'items' => $people,
+      'pagination' => $pagination
+  ));
+})
+->value('page', 1)
+->value('sort_by', 'ts_started')
+->value('sorting', 'desc')
+->assert('page', '\d+') // Numbers only
+->assert('sort_by','[a-zA-Z_]+') // Match a-z, A-Z, and "_"
+->assert('sorting','(\basc\b)|(\bdesc\b)') // Match "asc" or "desc"
+->bind('browse');
+
+function respondents_browse($page, $sort_by, $sorting){
+	global $bv, $paginator, $app;
 
 	$bv->questionnaire_id = $_GET['questionnaire'] ? $_GET['questionnaire'] : $app['session']->get('questionnaire'); // get from session
 
@@ -14,7 +56,7 @@ $app->get('/admin/members/{page}/{sort_by}/{sorting}', function (Request $reques
 
   $count = (int) R::count( 'respondent', ' questionnaire_id = ? AND email IS NOT NULL ', [ $bv->questionnaire_id ] );
 
-	if($count>0){
+	if($count <1) return [];
 
 	$app['session']->set('questionnaire', $bv->questionnaire_id); // save as session
 
@@ -88,19 +130,5 @@ $app->get('/admin/members/{page}/{sort_by}/{sorting}', function (Request $reques
 		elseif($p->status=='full') $p->status_class = 'success';
 
 	}
-
-    $pagination = new Pagination($paginator, $app['url_generator'], 'admin/members', $sort_by, $sorting);
-
-    return $app['twig']->render('table.html.twig', array(
-        'items' => $people,
-        'pagination' => $pagination
-    ));
-	}
-})
-->value('page', 1)
-->value('sort_by', 'ts_started')
-->value('sorting', 'desc')
-->assert('page', '\d+') // Numbers only
-->assert('sort_by','[a-zA-Z_]+') // Match a-z, A-Z, and "_"
-->assert('sorting','(\basc\b)|(\bdesc\b)') // Match "asc" or "desc"
-->bind('admin/members');
+	return $people;
+}

@@ -5,37 +5,29 @@
     <table class="table table-sm table-hover table-bordered">
           <thead class="thead-inverse">
           <tr>
-            <th></th>
             <th>Name</th>
+            <th>Handle</th>
             <th>URL</th>
-            <th>coop</th>
-            <th>fee</th>
-            <th>comment</th>
-            <th>country</th>
-            <th>username</th>
+            <th>Comment</th>
+            <th>Co-op participation</th>
+            <th>Membership</th>
+            <th>Country</th>
+            <th>Status</th>
             <th><a href="{{ pagination.sortingUrl('ts_started') }}">Date</a></th>
         </tr>
         </thead>
         <tbody>
         {% for it in items %}
             <tr class="table-{{ it.status_class }}">
-                <td>
-                	{% if it.status is null %}
-                		<a href="/admin/custom.php?invite={{ it.id }}" class="btn btn-success btn-sm">Invite</a>
-                	{% else %}
-                		{{ it.status }}
-                		<a href="/admin/custom.php?invite={{ it.id }}" class="btn btn-danger btn-sm">Re-Create</a>
-                	{% endif %}
-                	<!--{{ it.id }}-->
-                </td>
-                <td><a href="mailto:{{ it.email }}">{{ it.name }}</a></td>
+                <td>{{ it.name|raw }}</td>
+                <td><a href="https://social.coop/@{{ it.username }}" target="_blank">@{{ it.username }}</a></td>
                 <td><a href="{{ it.site }}" target="_blank">{{ it.site }}</a></td>
+                <td>{{ it.comment }}</td>
                 <td style="white-space: nowrap;">{{ it.coop|raw }}</td>
                 <td>{{ it.fee }}</td>
-                <td>{{ it.comment }}</td>
                 <td>{{ it.country|raw }}</td>
-                <td><a href="https://social.coop/@{{ it.username }}" target="_blank">{{ it.username }}</a></td>
-                <td style="white-space: nowrap;">{{ it.ts_started|date("H:m d F Y")  }}</td>
+                <td>{{ it.status }}</td>
+                <td style="white-space: nowrap;">{{ it.ts_started|date("d F Y")  }}</td>
             </tr>
         {% endfor %}
         </tbody>

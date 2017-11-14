@@ -60,12 +60,21 @@ function sanitize_user( $username, $no_spaces = true, $lower=false ) {
 	return $username;
 }
 
-function admin_auth(){
+function admin_auth($blocking = true, $token_type='admin_token'){
 	global $bv, $app;
 
 	$bv->user_token = $_GET['token'] ? $_GET['token'] : $app['session']->get('user_token'); // get from session
 
-	if($bv->user_token !=$bv->config->admin_token) exit("Unauthorized!"); // no good
+	if($bv->user_token !=$bv->config->{$token_type}){
+    if($blocking) exit("Unauthorized!"); // no good
+    else return false;
+  }
 
 	$app['session']->set('user_token', $bv->user_token); // OK, save as session
+
+  return true; // OK
+}
+
+function member_auth($blocking = true){
+	return admin_auth($blocking, 'members_token');
 }
