@@ -23,14 +23,13 @@ $app->get('/admin/members/{page}/{sort_by}/{sorting}', function (Request $reques
 
 	$limits = ($bv->db_type == 'postgres' ? ' LIMIT ? OFFSET ? ' : ' LIMIT ? , ? ');
 
-	if($bv->db_type == 'postgres') $params = [ $bv->questionnaire_id,  $sort_by, $paginator->getPerPage(), $paginator->getStartIndex() ];
-	else $params = [ $bv->questionnaire_id,  $sort_by, $paginator->getStartIndex(), $paginator->getPerPage() ];
+	if($bv->db_type == 'postgres') $params = [ $bv->questionnaire_id, $paginator->getPerPage(), $paginator->getStartIndex() ];
+	else $params = [ $bv->questionnaire_id, $paginator->getStartIndex(), $paginator->getPerPage() ];
 
-	// var_dump($count, $page, $sort_by, strtoupper($sorting), $limits, $params);
+	// var_dump($count, $page, $sort_by, ($sorting), $limits, $params);
 
-  if($count) $people = R::find( 'respondent', ' questionnaire_id = ? AND email IS NOT NULL
-  ORDER BY ?
-  '.$limits,  $params);
+  if($count) $people = R::find( 'respondent', " questionnaire_id = ? AND email IS NOT NULL
+  ORDER BY $sort_by $sorting ".$limits,  $params);
 
 	foreach ($people as $p) {
 		$responses = R::find( 'response', ' respondent_id = ?
