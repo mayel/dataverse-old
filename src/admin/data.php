@@ -60,7 +60,7 @@ $app->match('/admin/data', function (Request $request) use ($app) {
   		function database() {
   			// database name, will be escaped by Adminer
   			global $bv;
-  			return $bv->db_name;
+  			return $_REQUEST['db'] ? $_REQUEST['db'] : $bv->db_name;
   		}
 
   		function credentials() {
@@ -72,6 +72,30 @@ $app->match('/admin/data', function (Request $request) use ($app) {
   		function tableName($tableStatus) {
   			return h($tableStatus["Comment"] ? $tableStatus["Comment"] : $tableStatus["Name"]);
   		}
+
+			function tablesPrint($tables) {
+				echo "<ul id='tables'>\n";
+				//print_r($tables);
+				foreach ($tables as $table => $tableStatus) {
+					$tables_new[$table] = ($tableStatus["Comment"] ? $tableStatus["Comment"] : $table);
+				}
+
+				asort($tables_new);
+
+				foreach ($tables_new as $table => $name) {
+					echo '<li>';
+					//echo '<a href="' . h(ME) . 'select=' . urlencode($table) . '"' . bold($_GET["select"] == $table || $_GET["edit"] == $table, "select") . ">" . lang('select') . "</a> ";
+					echo ($table==$_GET["select"] ? '<strong>':'');
+					echo (support("table") || support("indexes")
+						? '<a href="' . h(ME)
+						. 'select=' . urlencode($table)
+						. "\">$name</a>"
+						: "<span>$name</span>"
+					) . "\n";
+					echo ($table==$_GET["select"] ? '</strong>':'');
+				}
+				echo "</ul>\n";
+			}
 
   		function fieldName($field, $order = 0) {
   			return h($field["comment"] ? $field["comment"] : $field["field"]);
