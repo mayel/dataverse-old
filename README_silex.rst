@@ -1,28 +1,14 @@
 Silex Skeleton
 ==============
 
-Welcome to the Silex Skeleton - a fully-functional Silex application that you
-can use as the skeleton for your new applications.
+This app is based on the Silex Skeleton - a fully-functional Silex application that you can use as the skeleton for your new applications.
 
 This document contains information on how to start using the Silex Skeleton.
 
-Creating a Silex Application
-----------------------------
-
-Silex uses `Composer`_ to ease the creation of a new project:
-
-.. code-block:: console
-
-    $ composer create-project fabpot/silex-skeleton path/to/install "~2.0"
-
-Composer will create a new Silex project under the `path/to/install` directory.
-
-Browsing the Demo Application
+Browsing the Application
 -----------------------------
 
-Congratulations! You're now ready to use Silex.
-
-To see a real-live Silex page in action, start the PHP built-in web server with
+To see a real-live Silex page in action, you can start the PHP built-in web server with
 command:
 
 .. code-block:: console

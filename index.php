@@ -1,3 +1,4 @@
 <?php
-echo "Server running but should be serving web/ directory instead!";
+echo "Web server running but it should be serving the web/ subdirectory instead!";
+
 phpinfo();
