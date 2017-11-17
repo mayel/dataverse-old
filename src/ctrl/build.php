@@ -39,7 +39,7 @@ $app->match('/build/questionnaire', function (Request $request) use ($app) {
 
 	admin_auth();
 
-  global $bv, $choices, $choice_link;
+  global $bv, $sort_choices, $choice_link;
 
 
 	if(!isset($_GET['new'])){
@@ -80,17 +80,17 @@ $app->match('/build/questionnaire', function (Request $request) use ($app) {
 
 
 
-	$choice_link = '/question?id=';
+	$choice_link = '/question?step=';
 
-	$choices = [];
+	$sort_choices = [];
 	$questions = questionnaire_questions($bv->questionnaire->id);
 
 	foreach ($questions as $s) {
 		//print_r($s);
-		$choices[$s->id] = $s->question_text;
+		$sort_choices[$s->step][$s->id] = $s->question_text;
 	}
 
-	if($choices){
+	if($sort_choices){
 		$attr['style'] .= 'display:none;';
 
 		$output_code .= get_include($bv->base_path.'/templates/sortable.html');
@@ -115,28 +115,28 @@ $app->match('/build/questionnaire', function (Request $request) use ($app) {
 
 	if ($data) {
 
-		error_log(print_r($data, true));
+		// error_log(print_r($data, true));
 
 		if($data['sortable']){ // user is sorting the questions
 
-			$ord=1;
+			$i_step=1;
 			foreach ($data['sortable'] as $so) {
-				//print_r($so);
-				if($so->id){
 
-					$question = question_get($so->id);
+				question_order($so->id, $i_step);
 
-					if($question){
-
-						$question->step = $ord;
-
-						R::store( $question );
-
-						$ord++;
+				if(count($so->children[0])){ // has sub-questions
+					$i_step_child=1;
+					foreach ($so->children[0] as $so_child) {
+						// error_log(print_r($so_child, true));
+						question_order($so_child->id, $i_step, $i_step_child);
+						$i_step_child++;
 					}
 				}
+
+				$i_step++;
+
 			}
-			exit('sorted '.$ord);
+			exit('OK sorted '.$i_step);
 		}
 
 		// do something with the data
@@ -154,7 +154,21 @@ $app->match('/build/questionnaire', function (Request $request) use ($app) {
 	return $app['twig']->render('form.html.twig', array('form' => $form->createView(), 'output_code' => $output_code, 'title' => $bv->page_title));
 });
 
+function question_order($qid, $step=1, $step_order=null){
+	if($qid){
 
+		$question = question_get($qid);
+
+		if($question){
+
+			$question->step = $step;
+			if($step_order) $question->step_order = $step_order;
+
+			R::store( $question );
+
+		}
+	}
+}
 
 
 $app->match('/build/question', function (Request $request) use ($app) {

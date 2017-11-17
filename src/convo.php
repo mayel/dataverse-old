@@ -48,14 +48,18 @@ function item_save($table_name = 'item', $data = [], $custom_linked_items=false)
 
 function respondent_question_responses_save($data, $col_prefix = "the") { // save object in DB, with support for many to many for items with array of data
 	global $bv;
-	//print_r([$bv->respondent, $bv->question, $data, $bv->response]);
 
-	$bv->field_name = ($bv->question->question_name ? $bv->question->question_name : $bv->question->id);
-	$bv->answer_type = ($bv->question->answer_type);
+	//print_r([$bv->respondent, $bv->question, $data, $bv->response]);
 
 	//$bv->response = R::dispense( $bv->table_response ); // init response
 
 	foreach ($data as $key => $value) {
+
+		if($bv->questions_by_field[$key]) $bv->question = $bv->questions_by_field[$key]; // to handle multiple questions on one screen
+
+		$bv->field_name = ($bv->question->question_name ? $bv->question->question_name : $bv->question->id);
+		$bv->answer_type = ($bv->question->answer_type);
+		// var_dump($key, $value, $bv->field_name, $bv->answer_type);
 
 		if($bv->answer_type=='Sortable'){ // dealing with an ajax list-sorting
 			$ord=0;
@@ -84,6 +88,10 @@ function respondent_question_responses_save($data, $col_prefix = "the") { // sav
 				return true;
 			}
 		} elseif($key == $bv->field_name){ // dealing with the response to current question
+
+			// defaults:
+			$try_by_id=false;
+			unset($col_name);
 
 			if($value){
 
@@ -149,6 +157,8 @@ function respondent_question_responses_save($data, $col_prefix = "the") { // sav
 
 				if($col_name && $col_prefix) $col_name = $col_prefix.$col_name;
 
+				// var_dump("<p>", $col_name, $bv->answer_type, $try_by_id);
+
 				if($bv->answer_type=='Price'){ // both number & currency
 
 					currency_get(); // load existing cookie
@@ -163,7 +173,7 @@ function respondent_question_responses_save($data, $col_prefix = "the") { // sav
 					response_save_custom($value); // amount
 					response_save_custom($bv->currency, 'currency'); // currency code
 
-				} elseif($col_name && !$try_by_id){ // store in appropriate column of response table
+				} elseif($col_name && !$try_by_id){ // simply store in appropriate column of response table
 
 					$respond[$col_name] = $value; // store
 
@@ -224,7 +234,7 @@ function respondent_question_responses_save($data, $col_prefix = "the") { // sav
 
 	} // end foreach
 
-	//exit();
+	// exit();
 	return $response_ids;
 }
 
@@ -369,7 +379,7 @@ function questionnaire_get($id) {
 }
 
 function questionnaire_questions($id) {
-	return R::find( 'question', ' questionnaire_id = ? ORDER BY step ASC ', [ $id ]  );
+	return R::find( 'question', ' questionnaire_id = ? ORDER BY step ASC, step_order ASC ', [ $id ]  );
 }
 
 function question_get($id) {

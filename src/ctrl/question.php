@@ -96,46 +96,48 @@ $app->match('/question', function (Request $request) use ($app) {
 	//$bv->response = R::dispense( $bv->table_response );
 
 
-	$bv->question_id = ($_GET['id'] ? $_GET['id'] : $app['session']->get('current_question')); // get from session
+	// $bv->question_id = ($_GET['id'] ? $_GET['id'] : $app['session']->get('current_question')); // get from session
+	$bv->question_id = $_GET['id'];
 
-	if(isset($_GET['after']) || !$bv->question_id){ // forward
+	if($bv->question_id){
+		$bv->questions[0] = R::load( 'question', intval($bv->question_id) );
 
-		$bv->from_step = isset($_GET['after']) ? $_GET['after'] : $app['session']->get('current_step'); // get from session
-    if(!$bv->from_step) $bv->from_step = 0; // default to 1st question
+	} else { // forward
 
-		$bv->question = R::findOne( 'question', ' questionnaire_id = ? AND step > ? ORDER BY step ASC LIMIT 1 ', [$bv->questionnaire->id, $bv->from_step] );
+		if(is_numeric($_GET['after'])) $bv->current_step = $_GET['after']+1;
+		elseif(is_numeric($_GET['before'])) $bv->current_step = $_GET['before']-1;
+		else $bv->current_step = is_numeric($_GET['step']) ? $_GET['step'] : $app['session']->get('current_step'); // get from URL or session
 
-	} elseif(isset($_GET['before'])){ // backward
+    if(!$bv->current_step) $bv->current_step = 1; // default to 1st step
 
-		$bv->from_step = isset($_GET['before']) ? $_GET['before'] : $app['session']->get('current_step'); // get from session
-
-		$bv->question = R::findOne( 'question', ' questionnaire_id = ? AND step < ? ORDER BY step DESC LIMIT 1 ', [intval($bv->questionnaire->id), intval($bv->from_step)] );
-
+		$bv->questions = R::findAll( 'question', ' questionnaire_id = ? AND step = ? ORDER BY step_order ASC ', [$bv->questionnaire->id, $bv->current_step] );
 	}
 
-
-	if(!$bv->question && is_numeric($bv->question_id)){
-
-		$bv->question = R::load( 'question', intval($bv->question_id) );
-
-		$bv->questionnaire = $bv->question->questionnaire; // get from table
-
-	}
-
-	if(!$bv->question->id) {
-
-		$bv->question = R::findOne( 'question', 'questionnaire_id = ?  ORDER BY step ASC LIMIT 1 ', [intval($bv->questionnaire->id)] );
-	}
-
-	$bv->question_id = $bv->question->id;
-	$bv->current_step = $bv->question->step;
-
-	$app['session']->set('questionnaire', $bv->questionnaire->id); // save as session
-	$app['session']->set('current_question', $bv->question_id); // save as session
-	$app['session']->set('current_step', $bv->current_step); // save as session
+	// if(isset($_GET['after']) || !$bv->question_id){ // forward
+  //
+	// 	$bv->from_step = isset($_GET['after']) ? $_GET['after'] : $app['session']->get('current_step'); // get from session
+  //   if(!$bv->from_step) $bv->from_step = 0; // default to 1st question
+  //
+	// 	$bv->question = R::findOne( 'question', ' questionnaire_id = ? AND step > ? ORDER BY step ASC LIMIT 1 ', [$bv->questionnaire->id, $bv->from_step] );
+  //
+	// } elseif(isset($_GET['before'])){ // backward
+  //
+	// 	$bv->from_step = isset($_GET['before']) ? $_GET['before'] : $app['session']->get('current_step'); // get from session
+  //
+	// 	$bv->question = R::findOne( 'question', ' questionnaire_id = ? AND step < ? ORDER BY step DESC LIMIT 1 ', [intval($bv->questionnaire->id), intval($bv->from_step)] );
+  //
+	// }
 
 
-	//var_dump($bv->questionnaire->id, $bv->respondent_id, $bv->question_id, $bv->question, $data, $bv->response);
+	// if(!$bv->question->id) {
+  //
+	// 	$bv->question = R::findOne( 'question', 'questionnaire_id = ?  ORDER BY step ASC LIMIT 1 ', [intval($bv->questionnaire->id)] );
+	// }
+
+	// $bv->question = $bv->questions[0]; // 1st question
+
+
+	// var_dump($bv->questionnaire->id, $bv->respondent_id, $bv->question_id, $bv->questions, $bv->question, $data, $bv->response);
 
 	//$list_questions = R::findAll( 'question', ' ORDER BY id DESC LIMIT 10 ' );
 	//R::preload($list_questions, array('answer')); // eager loading of answers
@@ -143,33 +145,46 @@ $app->match('/question', function (Request $request) use ($app) {
 	//print_r($list_questions);
 
 	$form_builder = $app['my.formFactory']->createBuilder(FormType::class, []);
+
 	//var_dump($form_builder);
-	// ($bv->response ? $bv->response : $data)
+	// var_dump($bv->questions);
 
-	//foreach ($list_questions as $bv->question) {
-		//print_r($bv->question);
+	foreach ($bv->questions as $bv->question) {
+		// print_r($bv->question);
 
-		$field_label = $bv->question->question_text ? $bv->question->question_text : $bv->question->question_name;
-		$field_name = ($bv->question->question_name ? $bv->question->question_name : $bv->question->id);
-		//$field_name .= '-'. $bv->question->answer_type;
+		$bv->questionnaire = $bv->question->questionnaire; // get from table
 
-		$attr = array('class' => ' fieldtype-'.$bv->question->answer_type. ' field-'.$field_name);
+		$bv->question_id = $bv->question->id;
+		$bv->current_step = $bv->question->step;
+
+		$app['session']->set('questionnaire', $bv->questionnaire->id); // save as session
+		$app['session']->set('current_question', $bv->question_id); // save as session
+		$app['session']->set('current_step', $bv->current_step); // save as session
+
+		$bv->field_label = $bv->question->question_text ? $bv->question->question_text : $bv->question->question_name;
+		$bv->field_name = ($bv->question->question_name ? $bv->question->question_name : $bv->question->id);
+		//$bv->field_name .= '-'. $bv->question->answer_type;
+
+		$bv->questions_by_field[$bv->field_name] = $bv->question;
+
+		$attr = array('class' => ' fieldtype-'.$bv->question->answer_type. ' field-'.$bv->field_name);
+
 
 		switch ($bv->question->answer_type) {
 			case "LongText":
 
 				$attr['rows'] = '4';
 
-				$form_builder->add($field_name, TextareaType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, TextareaType::class, array(
+					'label' => $bv->field_label,
 					'attr'	  => $attr
 				));
 
 				break;
 			case "Email":
 
-				$form_builder->add($field_name, EmailType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, EmailType::class, array(
+					'label' => $bv->field_label,
 					'attr'	  => $attr,
 					'constraints' => array(new Assert\Email(array(
 			            'message' => 'The email {{ value }} is not a valid email.',
@@ -182,8 +197,8 @@ $app->match('/question', function (Request $request) use ($app) {
 
 				$attr['style'] = 'max-width:240px';
 
-				$form_builder->add($field_name, DateType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, DateType::class, array(
+					'label' => $bv->field_label,
 					'attr'	  => $attr,
 					'widget' => 'single_text',
 				));
@@ -193,8 +208,8 @@ $app->match('/question', function (Request $request) use ($app) {
 
 				$attr['style'] = 'max-width:140px';
 
-				$form_builder->add($field_name, TimeType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, TimeType::class, array(
+					'label' => $bv->field_label,
 					'attr'	  => $attr,
 					'widget' => 'single_text',
 				));
@@ -204,8 +219,8 @@ $app->match('/question', function (Request $request) use ($app) {
 
 				//$attr['style'] = 'width:50%';
 
-				$form_builder->add($field_name, DateTimeType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, DateTimeType::class, array(
+					'label' => $bv->field_label,
 					'attr'	  => $attr,
 					'date_widget' => 'single_text',
 					'time_widget' => 'single_text',
@@ -216,8 +231,8 @@ $app->match('/question', function (Request $request) use ($app) {
 
 				$attr['style'] = 'max-width:240px';
 
-				$form_builder->add($field_name, BirthdayType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, BirthdayType::class, array(
+					'label' => $bv->field_label,
 					'attr'	  => $attr,
 					'widget' => 'single_text',
 				));
@@ -227,8 +242,8 @@ $app->match('/question', function (Request $request) use ($app) {
 
 				$attr['style'] = 'max-width:200px';
 
-				$form_builder->add($field_name, IntegerType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, IntegerType::class, array(
+					'label' => $bv->field_label,
 					'scale' => 0,
 					'attr'	  => $attr
 				));
@@ -238,8 +253,8 @@ $app->match('/question', function (Request $request) use ($app) {
 
 				$attr['style'] = 'max-width:200px';
 
-				$form_builder->add($field_name, NumberType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, NumberType::class, array(
+					'label' => $bv->field_label,
 					//'scale' => 0,
 					'attr'	  => $attr
 				));
@@ -249,8 +264,8 @@ $app->match('/question', function (Request $request) use ($app) {
 
 				$attr['style'] = 'max-width:100px';
 
-				$form_builder->add($field_name, PercentType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, PercentType::class, array(
+					'label' => $bv->field_label,
 					//'scale' => 0,
 					'attr'	  => $attr
 				));
@@ -263,8 +278,8 @@ $app->match('/question', function (Request $request) use ($app) {
 
 				//$attr['class'] .= ' ';
 
-				$form_builder->add($field_name, TextType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, TextType::class, array(
+					'label' => $bv->field_label,
 					//'choice_value' => '',
 					//'placeholder' => '+1 555 123 4567',
 					'attr'	  => $attr
@@ -277,8 +292,8 @@ $app->match('/question', function (Request $request) use ($app) {
 
 				$attr['class'] .= ' select2';
 
-				$form_builder->add($field_name, CurrencyType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, CurrencyType::class, array(
+					'label' => $bv->field_label,
 					'placeholder' => 'Select a currency',
 					'attr'	  => $attr,
 					'data'	  => $bv->currency,
@@ -290,14 +305,14 @@ $app->match('/question', function (Request $request) use ($app) {
 				currency_get();
 
 				$param = array(
-					'label' => $field_label,
+					'label' => $bv->field_label,
 					'attr'	  => $attr
 				);
 
 				//if($currency) $param['currency'] = $bv->currency;
-				//$form_builder->add($field_name, MoneyType::class, $param);
+				//$form_builder->add($bv->field_name, MoneyType::class, $param);
 
-				$form_builder->add($field_name, NumberType::class, $param);
+				$form_builder->add($bv->field_name, NumberType::class, $param);
 
 				$attr['class'] .= ' select2';
 
@@ -313,8 +328,8 @@ $app->match('/question', function (Request $request) use ($app) {
 
 				$attr['class'] .= ' select2';
 
-				$form_builder->add($field_name, CountryType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, CountryType::class, array(
+					'label' => $bv->field_label,
 					//'choice_value' => '',
 					'placeholder' => 'Select a country',
 					'attr'	  => $attr
@@ -325,8 +340,8 @@ $app->match('/question', function (Request $request) use ($app) {
 
 				$attr['class'] .= ' select2';
 
-				$form_builder->add($field_name, TimezoneType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, TimezoneType::class, array(
+					'label' => $bv->field_label,
 					//'choice_value' => '',
 					'placeholder' => 'Select a timezone',
 					'attr'	  => $attr
@@ -337,14 +352,14 @@ $app->match('/question', function (Request $request) use ($app) {
 
 				$output_code .= '<script src="https://cdnjs.cloudflare.com/ajax/libs/hideshowpassword/2.0.10/hideShowPassword.min.js"></script><link rel="stylesheet" href="/css/pw.wink.css">';
 
-				$form_builder->add($field_name, PasswordType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, PasswordType::class, array(
+					'label' => $bv->field_label,
 					//'choice_value' => '',
 					//'placeholder' => 'Choose a password',
 					'attr'	  => $attr
 				));
 
-//				$form_builder->add($field_name.'-check', PasswordType::class, array(
+//				$form_builder->add($bv->field_name.'-check', PasswordType::class, array(
 //					'label' => 'Type it again',
 //					//'choice_value' => '',
 //					//'placeholder' => 'Choose a password',
@@ -365,8 +380,8 @@ $app->match('/question', function (Request $request) use ($app) {
 
 				//$attr['class'] .= ' select2';
 
-				$form_builder->add($field_name, ChoiceType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, ChoiceType::class, array(
+					'label' => $bv->field_label,
 					'choices' => $choices,
 					'expanded' => true,
 					'multiple' => false,
@@ -388,8 +403,8 @@ $app->match('/question', function (Request $request) use ($app) {
 					$choices[$s->answer] = $s->id;
 				}
 
-				$form_builder->add($field_name, ChoiceType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, ChoiceType::class, array(
+					'label' => $bv->field_label,
 					'choices' => $choices,
 					'expanded' => true,
 					'multiple' => true,
@@ -401,16 +416,16 @@ $app->match('/question', function (Request $request) use ($app) {
 			case "UploadDoc":
 			case "UploadFile":
 
-				$form_builder->add($field_name, FileType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, FileType::class, array(
+					'label' => $bv->field_label,
 					'attr'	  => $attr
 				));
 
 				break;
 			case "URL":
 
-				$form_builder->add($field_name, URLType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, URLType::class, array(
+					'label' => $bv->field_label,
 					'attr'	  => $attr,
 					'data'	  => 'http://'
 				));
@@ -421,13 +436,13 @@ $app->match('/question', function (Request $request) use ($app) {
 				$attr['style'] .= 'display:none;';
 
 				$output_code .= "<script>
-				var loc_field = '#form_$field_name';
+				var loc_field = '#form_$bv->field_name';
 				</script>";
 
 				$output_code .= file_get_contents($bv->base_path.'/templates/map.html');
 
-				$form_builder->add($field_name, TextType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, TextType::class, array(
+					'label' => $bv->field_label,
 					'attr'	  => $attr,
 				));
 
@@ -435,23 +450,23 @@ $app->match('/question', function (Request $request) use ($app) {
 			case "Sortable":
 
 
-				global $choices;
-				$choices = [];
+				global $sort_choices;
+				$sort_choices = [];
 				foreach ($bv->question->sharedAnswerList as $s) {
 					//print_r($s);
-					$choices[$s->id] = $s->answer;
+					$sort_choices[$s->step][$s->id] = $s->answer;
 				}
 
 				$attr['style'] .= 'display:none;';
 
 				$output_code .= "<script>
-				var field_name = '$field_name';
+				var field_name = '$bv->field_name';
 				</script>";
 
 				$output_code .= get_include($bv->base_path.'templates/sortable.html');
 
-				$form_builder->add($field_name, TextType::class, array(
-					'label' => $field_label,
+				$form_builder->add($bv->field_name, TextType::class, array(
+					'label' => $bv->field_label,
 					'attr'	  => $attr,
 					'data'	  => 'sorted',
 				));
@@ -460,8 +475,8 @@ $app->match('/question', function (Request $request) use ($app) {
 
 			default:
 
-				if($field_name) $form_builder->add($field_name, TextType::class, array(
-					'label' => $field_label,
+				if($bv->field_name) $form_builder->add($bv->field_name, TextType::class, array(
+					'label' => $bv->field_label,
 					'attr'	  => $attr
 				));
 
@@ -472,7 +487,7 @@ $app->match('/question', function (Request $request) use ($app) {
 //		    'data' => $bv->question->answer_type,
 //		));
 
-	//}
+}
 
 //	$form_builder->add('save', SubmitType::class, [
 //			'label' => 'Continue',
@@ -501,7 +516,7 @@ $app->match('/question', function (Request $request) use ($app) {
 
 		//print_r($id);
 
-		//$show = $app['twig']->render('data.html.twig', array('data' => $data) );
+		//$show = $app['twig']->render('data.html.twig', array('data' => $data) ); // preview
 
 
 		//email_send($show);
@@ -510,7 +525,8 @@ $app->match('/question', function (Request $request) use ($app) {
 
 		// redirect somewhere
 		//return $app->redirect('/');
-	}
+
+	} // end data
 
 	// display the form
 	return $app['twig']->render('question.html.twig', array('form' => $form->createView(), 'output_code' => $output_code, 'current_step' => $bv->current_step));
