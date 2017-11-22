@@ -42,6 +42,7 @@ $app['my.formFactory'] = Forms::createFormFactoryBuilder()
 //use Mayel\FormExtrasBundle\Form\Type\FieldsetType;
 
 
+
 $app->match('/question', function (Request $request) use ($app) {
 	global $bv;
 
@@ -113,6 +114,8 @@ $app->match('/question', function (Request $request) use ($app) {
 		$bv->questions = R::findAll( 'question', ' questionnaire_id = ? AND step = ? ORDER BY step_order ASC ', [$bv->questionnaire->id, $bv->current_step] );
 	}
 
+	if(!count($bv->questions)) $bv->questions[0] = R::findOne( 'question', ' questionnaire_id = ? ORDER BY step ASC, step_order ASC LIMIT 1 ', [$bv->questionnaire->id] ); // fallback to load first question
+
 	// if(isset($_GET['after']) || !$bv->question_id){ // forward
   //
 	// 	$bv->from_step = isset($_GET['after']) ? $_GET['after'] : $app['session']->get('current_step'); // get from session
@@ -129,14 +132,6 @@ $app->match('/question', function (Request $request) use ($app) {
 	// }
 
 
-	// if(!$bv->question->id) {
-  //
-	// 	$bv->question = R::findOne( 'question', 'questionnaire_id = ?  ORDER BY step ASC LIMIT 1 ', [intval($bv->questionnaire->id)] );
-	// }
-
-	// $bv->question = $bv->questions[0]; // 1st question
-
-
 	// var_dump($bv->questionnaire->id, $bv->respondent_id, $bv->question_id, $bv->questions, $bv->question, $data, $bv->response);
 
 	//$list_questions = R::findAll( 'question', ' ORDER BY id DESC LIMIT 10 ' );
@@ -144,7 +139,11 @@ $app->match('/question', function (Request $request) use ($app) {
 
 	//print_r($list_questions);
 
-	$form_builder = $app['my.formFactory']->createBuilder(FormType::class, []);
+	$form_builder = $app['my.formFactory']->createBuilder(FormType::class );
+	// [
+	// 	'allow_extra_fields' => true,
+	// 	'extra_fields_message' => 'This form should not contain extra fields!'
+	// ]
 
 	//var_dump($form_builder);
 	// var_dump($bv->questions);
@@ -503,17 +502,21 @@ $app->match('/question', function (Request $request) use ($app) {
 //		]);
 
 	$form = $form_builder->getForm();
+	// error_log(print_r($form, true));
 
 	$form->handleRequest($request);
 
+	// error_log(print_r($_REQUEST, true));
 	$is_valid = $form->isValid(); // regular form validates OK
+	// error_log(print_r($form->isValid(), true));
+	// error_log(print_r($form->getData(), true));
 
-	if(!$is_valid) $data = (array) json_decode(file_get_contents("php://input"));
+	if(!$is_valid) $data = (array) json_decode(file_get_contents("php://input")); // JSON from sortable
 	else $data = $form->getData(); // regular form POST
 
-	if ($data) {
+	// error_log(print_r($data, true));
 
-		//error_log(print_r($data, true));
+	if ($data) {
 
 		//$data['ts_latest'] = R::isoDateTime();
 
@@ -537,6 +540,10 @@ $app->match('/question', function (Request $request) use ($app) {
 
 	} // end data
 
+
+	$next_question = R::findOne( 'question', ' questionnaire_id = ? AND step > ? ORDER BY step ASC LIMIT 1 ', [$bv->questionnaire->id, $bv->current_step] );
+	if($next_question->id) $bv->has_more_questions = true;
+
 	// display the form
-	return $app['twig']->render('question.html.twig', array('form' => $form->createView(), 'output_code' => $output_code, 'current_step' => $bv->current_step, 'title' => $bv->questionnaire->questionnaire_title , 'continue_label' => ($bv->questionnaire->continue_label ? $bv->questionnaire->continue_label : 'Continue')));
+	return $app['twig']->render('question.html.twig', array('form' => $form->createView(), 'output_code' => $output_code, 'current_step' => $bv->current_step, 'has_more_questions' => $bv->has_more_questions , 'title' => $bv->questionnaire->questionnaire_title , 'continue_label' => ($bv->questionnaire->continue_label ? $bv->questionnaire->continue_label : 'Continue')));
 });

@@ -9,32 +9,28 @@
   <div class="col col-md-6  my-auto">
 
 
-  	<form action="?" method="post" enctype="multipart/form-data" class="">
-
+  	<form action="?step={{current_step}}" method="post" enctype="multipart/form-data" class="">
 
   	    {{ form_widget(form) }}
 
 
-
   	    {{ output_code|raw }}
 
+			{% if continue_label and has_more_questions %}
+	      <div class="form-group">
+	      	<button type="submit" id="form_save" class="btn-success btn-lg btn">{{continue_label}}</button>
+	      </div>
+			{% endif %}
 
       <div class="form-group">
-
-       	 <button type="submit" id="form_save" class="btn-success btn-lg btn">{{continue_label}}</button>
-       </div>
-
-      <div class="form-group">
-
        	{% if current_step >1 %}
-       	    <a href="?before={{current_step|e}}" id="back" class="btn-sm btn btn-info">Back</a>
+       	    <a href="?before={{current_step|e}}" onclick="return back_with_fallback('?before={{current_step|e}}')" id="back" class="btn-sm btn btn-info">Back</a>
 				{% endif %}
-				{% if current_step %}
+				{% if current_step and has_more_questions %}
        	    <a href="?after={{current_step|e}}" id="skip" class="btn-sm btn btn-warning">Skip</a>
        	{% endif %}
-
-
       </div>
+
   	</form>
 
   </div>

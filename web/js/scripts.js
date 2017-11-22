@@ -52,3 +52,18 @@ function ajax_delete(endpoint_url, element) {
     }
 });
 }
+
+function back_with_fallback(url) {
+	url = url || '/';
+	var prevPage = window.location.href;
+
+	window.history.go(-1);
+
+	setTimeout(function(){
+		if (window.location.href == prevPage) {
+			window.location.href = url;
+		}
+	}, 500);
+
+	return false;
+}
