@@ -40,7 +40,7 @@ $app->match('/build/questionnaire', function (Request $request) use ($app) {
 
 	admin_auth();
 
-  global $bv, $sort_choices, $choice_link;
+  global $bv, $sortable;
 
 
 	if(!isset($_GET['new'])){
@@ -85,18 +85,26 @@ $app->match('/build/questionnaire', function (Request $request) use ($app) {
 
 
 
-	$choice_link = '/question?step=';
+	$sortable->links->step = '/question?step=';
+	$sortable->links->edit = '/build/question?id=';
+	$sortable->links->delete = '/build/question?id=';
 
-	$sort_choices = [];
+	$sortable->choices = [];
 	$questions = questionnaire_questions($bv->questionnaire->id);
 
 	foreach ($questions as $s) {
 		// print_r($s);
-		$sort_choices[$s->step][$s->id] = $s->question_text;
+		if(!$s->step) $s->step = $prev_step+99;
+		$sortable->choices[$s->step][$s->id] = $s->question_text;
+		$prev_step = $s->step;
 	}
-	// print_r($sort_choices);
 
-	if($sort_choices){
+	// var_dump($sortable->choices);
+	$sortable->is_tree = true;
+	// if(count($sortable->choices)>1) $sortable->is_tree = true;
+	// else $sortable->choices
+
+	if($sortable->choices){
 		$attr['style'] .= 'display:none;';
 
 		$output_code .= get_include($bv->base_path.'/templates/sortable.html');
@@ -160,11 +168,13 @@ $app->match('/build/questionnaire', function (Request $request) use ($app) {
 	return $app['twig']->render('form.html.twig', array('form' => $form->createView(), 'output_code' => $output_code, 'title' => $bv->page_title));
 });
 
+
+
 function question_order($qid, $step=1, $step_order=null){
-	error_log("question_order");
-	error_log($qid);
-	error_log($step);
-	error_log($step_order);
+	// error_log("question_order");
+	// error_log($qid);
+	// error_log($step);
+	// error_log($step_order);
 	if($qid){
 
 		$question = question_get($qid);
@@ -180,6 +190,17 @@ function question_order($qid, $step=1, $step_order=null){
 	}
 }
 
+$app->delete('/build/question', function (Request $request) use ($app) {
+	global $bv;
+
+	admin_auth();
+
+		if($_REQUEST['id'] && ($item = R::load( 'question', $_REQUEST['id'] ))){
+			R::trash( $item );
+			exit("OK");
+		}
+		else exit("Error");
+});
 
 $app->match('/build/question', function (Request $request) use ($app) {
 
@@ -187,11 +208,22 @@ $app->match('/build/question', function (Request $request) use ($app) {
 
   admin_auth();
 
-	$bv->questionnaire_id = $_GET['questionnaire'] ? $_GET['questionnaire'] : $app['session']->get('questionnaire'); // get from session
+
+	if($_GET['id']) $bv->question = R::load( 'question', $_GET['id'] );
+
+	if($bv->question && $bv->question->questionnaire_id){ // edit
+
+		$bv->questionnaire_id = $bv->question->questionnaire_id;
+
+	} else { // new question
+
+		$bv->questionnaire_id = $_GET['questionnaire'] ? $_GET['questionnaire'] : $app['session']->get('questionnaire'); // get from session
+
+	}
 
 	if($bv->questionnaire_id) $bv->questionnaire = questionnaire_get($bv->questionnaire_id);
 
-	if(!$bv->questionnaire->id) return $app->redirect('/build/');
+	if(!$bv->questionnaire->id) return $app->redirect('/build/?choose_questionnaire');
 
 	$app['session']->set('questionnaire', $bv->questionnaire->id);
 
@@ -257,7 +289,7 @@ $app->match('/build/question', function (Request $request) use ($app) {
 	//$types = array_combine($types, $types);
 	$types = array_flip($bv->answer_types);
 
-	$form = $app['my.formFactory']->createBuilder(FormType::class, $data)
+	$form = $app['my.formFactory']->createBuilder(FormType::class, $bv->question)
 		->add('answer_type', ChoiceType::class, array(
 			'label' => 'What kind of information do you need?',
 			'choices' => $types,
@@ -303,14 +335,28 @@ $app->match('/build/question', function (Request $request) use ($app) {
 
 	if ($form->isValid()) {
 		$data = $form->getData();
+		// var_dump('data', $data);
 
-		$data['questionnaire'] = $bv->questionnaire;
-		$data['step'] = $app['session']->get('num_steps')+1; // increment
+		if(is_array($data)){ // new question
+			$data['questionnaire'] = $bv->questionnaire;
+			$num_step = $app['session']->get('num_steps');
+			if(!$num_step) $num_step = rand(55,98);
+			$data['step'] = $num_step+1; // increment
+
+		} else { // edit
+			$data = $data->export();
+		}
+
 
 		// do something with the data
+		$bv->item = $bv->question;
+		// var_dump('item',$bv->item);
+		// var_dump('data', $data);
 		$id = item_save('question', $data);
-		//print_r($id);
-//
+		// var_dump('id',$id);
+		// var_dump('item after',$bv->item);
+		// exit();
+
 //		$show = $app['twig']->render('data.html.twig', array('data' => $bv->item) );
 //
 //		//email_send($show);
@@ -333,116 +379,6 @@ $app->match('/build/action', function (Request $request) use ($app) {
 
   admin_auth();
 
-	$bv->questionnaire_id = $_GET['questionnaire'] ? $_GET['questionnaire'] : $app['session']->get('questionnaire'); // get from session
+	exit("TODO");
 
-	if($bv->questionnaire_id) $bv->questionnaire = questionnaire_get($bv->questionnaire_id);
-
-	if(!$bv->questionnaire->id) return $app->redirect('/build/');
-
-	$app['session']->set('questionnaire', $bv->questionnaire->id);
-
-	//$app['monolog']->debug('Testing the Monolog logging.');
-
-	$bv->answer_types = [
-		'Message'=>'Text (short)',
-		'Redirect'=>'Text (long)',
-		'Email'=>'Choice from list',
-
-	];
-
-	$bv->answer_examples = [
-	'NumberInteger'=>1,
-	'LongText'=>2,
-	'Country'=>3,
-	'Choice'=>4,
-	'MultipleChoices'=>5,
-	'Email'=>6,
-	'Timezone'=>7,
-	'Phone'=>8,
-	'URL'=>9,
-	'Date'=>10,
-	'DateTime'=>11,
-	'Time'=>12,
-	'Currency'=>13,
-	'Price'=>14,
-	'Password'=>15,
-	'Number'=>16,
-	'Percentage'=>17,
-	'Birthday'=>18,
-	'UploadImage'=>19,
-	'MapLocation'=>20,
-	'Sortable'=>21,
-
-	'ShortText'=>23,
-	'Language'=>24
-	];
-
-	//$types = array_combine($types, $types);
-	$types = array_flip($bv->answer_types);
-
-	$form = $app['my.formFactory']->createBuilder(FormType::class, $data)
-		->add('answer_type', ChoiceType::class, array(
-			'label' => 'What kind of information do you need?',
-			'choices' => $types,
-			'expanded' => true,
-		    'choice_label' => function ($value, $key, $index) {
-		    	global $bv;
-		    	//var_dump($bv->answer_examples, $value);
-		       if($bv->answer_examples[$value]) return $key.'<a href="/question?id='.$bv->answer_examples[$value].'" target="_blank" class="btn btn-sm float-right"><i class="fa fa-eye" aria-hidden="true"></i></a>';
-		        return $key;
-		    },
-		))
-		->add('question_text', null, [
-			'label' => 'Ask the question',
-			'attr'=>['placeholder' => 'How old are you?'],
-		])
-		->add('question_name', null, [
-			'label' => 'Field name',
-			'attr'=>['placeholder' => 'age'],
-		])
-		->add('question_note', TextareaType::class, [
-			'label' => 'Note (optional)',
-			'attr'=>['placeholder' => 'All ages welcome!'],
-		])
-	   ->add('answer', CollectionType::class, array(
-		   // each entry in the array will be an "email" field
-			'label' => 'For OneChoice, MultiChoices, ListChoice, Sortable –  add possible answers:',
-		   'entry_type'   => TextType::class,
-		   'allow_add'	=> true,
-		   // these options are passed to each "email" type
-		   'entry_options'  => array(
-			   'label'	  => false,
-			   'required'	  => false,
-			   'attr'	  => array('class' => ' extra-input')
-		   ),
-	   ))
-//		->add('save', SubmitType::class, [
-//			'label' => 'Save',
-//		])
-		->getForm();
-
-	$form->handleRequest($request);
-
-	if ($form->isValid()) {
-		$data = $form->getData();
-
-		$data['questionnaire'] = $bv->questionnaire;
-		$data['step'] = $app['session']->get('num_steps')+1; // increment
-
-		// do something with the data
-		$id = item_save('question', $data);
-		//print_r($id);
-//
-//		$show = $app['twig']->render('data.html.twig', array('data' => $bv->item) );
-//
-//		//email_send($show);
-//
-//		return $show;
-
-		// redirect somewhere
-		return $app->redirect('/build/questionnaire?id='.$bv->questionnaire->id);
-	}
-
-	// display the form
-	return $app['twig']->render('build_question.html.twig', array('form' => $form->createView(), 'title' => $bv->questionnaire->questionnaire_title ));
 });

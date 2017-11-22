@@ -5,13 +5,13 @@
 
 <div class="row justify-content-md-center" >
   <div class="col col-md-6">
-  
+
   <h1>{{ title|e }}</h1>
 <!--  <h2>Ask a question</h2>-->
   	<hr/>
-  	
-  	<form action="?" method="post">
-  	    
+
+  	<form method="post">
+
   	    {% block radio_label %}
   	        {# Do not display the label if widget is not defined in order to prevent double label rendering #}
   	        {% if widget is defined %}
@@ -29,28 +29,28 @@
   	            </label>
   	        {% endif %}
   	    {% endblock radio_label %}
-  	    
+
   	    {{ form_widget(form) }}
-  	    
+
   	    <div class="form-group">
   	      	   <a href="#" id="add-another" class="btn btn-info pull-right">Add another answer</a>
-  	    
+
   	    	<button type="submit" id="form_save" class="btn-success btn">Save</button>
   	    </div>
-  	    
-  	    
+
+
   	</form>
-  	
+
   	<script type="text/javascript">
   	    // keep track of how many email fields have been rendered
   	    var itemCount = '{{ form.answer|length }}';
-  	
+
   	    jQuery(document).ready(function() {
   	        jQuery('#add-another').click(function(e) {
   	            e.preventDefault();
-  	
+
   	            var fieldsList = jQuery('#form_answer');
-  	
+
   	            // grab the prototype template
   	            var newWidget = fieldsList.attr('data-prototype');
   	            // replace the "__name__" used in the id and name of the prototype
@@ -58,14 +58,14 @@
   	            // end name attribute looks like name="contact[answers][2]"
   	            newWidget = newWidget.replace(/__name__/g, itemCount);
   	            itemCount++;
-  	
+
   	            // create a new list element and add it to the list
   	            var newLi = jQuery('<div></div>').html(newWidget);
   	            newLi.appendTo(fieldsList);
   	        });
   	    })
   	</script>
-  	
+
   </div>
 </div>
 

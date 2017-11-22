@@ -454,11 +454,11 @@ $app->match('/question', function (Request $request) use ($app) {
 			case "Sortable":
 
 
-				global $sort_choices;
-				$sort_choices = [];
+				global $sortable;
+				$sortable->choices = [];
 				foreach ($bv->question->sharedAnswerList as $s) {
 					//print_r($s);
-					$sort_choices[$s->step][$s->id] = $s->answer;
+					$sortable->choices[$s->step][$s->id] = $s->answer;
 				}
 
 				$attr['style'] .= 'display:none;';

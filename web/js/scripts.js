@@ -1,15 +1,15 @@
 
 // PAGE INIT
 $(document).ready(function() {
-	
+
 	$('.select2').select2();
-	
+
 	var pw_field = $(".fieldtype-Password");
-	
+
 	if(pw_field.length) $(pw_field).hideShowPassword(false, true);
-	
+
 	var phone_field = $(".fieldtype-Phone");
-	
+
 	if(phone_field.length) $(phone_field).intlTelInput({
 	  nationalMode: false,
 	  initialCountry: "auto",
@@ -20,7 +20,7 @@ $(document).ready(function() {
 	    });
 	  }
 	});
-	 
+
 	$("#form_language").select2({
 	  ajax: {
 	    url: function (params) {
@@ -40,5 +40,15 @@ $(document).ready(function() {
 	  allowClear: true,
 	  placeholder: "Start typing your language & select it",
 	});
-	
+
 });
+
+function ajax_delete(endpoint_url, element) {
+	$.ajax({
+    url: endpoint_url,
+    type: 'DELETE',
+    success: function(result) {
+        $(element).remove();
+    }
+});
+}
