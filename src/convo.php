@@ -45,8 +45,7 @@ function item_save($table_name = 'item', $data = [], $custom_linked_items=false)
 	return R::store( $bv->item );
 }
 
-
-function respondent_question_responses_save($data, $col_prefix = "the") { // save object in DB, with support for many to many for items with array of data
+function respondent_questions_responses_save($data, $col_prefix = "the") { // save object in DB, with support for many to many for items with array of data
 	global $bv;
 
 	//print_r([$bv->respondent, $bv->question, $data, $bv->response]);
@@ -57,182 +56,187 @@ function respondent_question_responses_save($data, $col_prefix = "the") { // sav
 
 		if($bv->questions_by_field[$key]) $bv->question = $bv->questions_by_field[$key]; // to handle multiple questions on one screen
 
-		$bv->field_name = ($bv->question->question_name ? $bv->question->question_name : $bv->question->id);
-		$bv->answer_type = ($bv->question->answer_type);
-		// var_dump($key, $value, $bv->field_name, $bv->answer_type);
+		return respondent_question_responses_save($key, $value, $data, $col_prefix = "the");
 
-		if($bv->answer_type=='Sortable'){ // dealing with an ajax list-sorting
-			$ord=0;
+	}
+}
 
-			if(is_array($value)){
-				foreach ($value as $so) {
-					//print_r($so);
-					if($so->id){
+function respondent_question_responses_save($key, $value, $data, $col_prefix = "the") { // save object in DB, with support for many to many for items with array of data
+	global $bv;
 
-						$answer = answer_prepare($so->id, true);
+	$bv->field_name = ($bv->question->question_name ? $bv->question->question_name : $bv->question->id);
+	$bv->answer_type = ($bv->question->answer_type);
+
+	if($bv->answer_type=='Sortable'){ // dealing with an ajax list-sorting
+		$ord=0;
+
+		if(is_array($value)){
+			foreach ($value as $so) {
+				//print_r($so);
+				if($so->id){
+
+					$answer = answer_prepare($so->id, true);
+
+					if($answer){
+
+						if($ord>0) unset( $bv->response );  // create an additional response row
+
+						$respond[$col_prefix.'Num'] = $ord;
+
+						$response_ids[] = answer_response_save( $answer, $respond );
+
+						$ord++;
+					}
+				}
+			}
+			exit('sorted '.$ord);
+		} else {
+			return true;
+		}
+	} elseif($key == $bv->field_name){ // dealing with the response to current question
+
+		// defaults:
+		$try_by_id=false;
+		unset($col_name);
+
+		if($value){
+
+			if(in_array($bv->answer_type, ['UploadImage','UploadDoc','UploadFile'])){
+
+				$dir = __DIR__.'/../web/uploads';
+				$file = $value;
+
+				// compute a random name and try to guess the extension (more secure)
+				$extension = $file->guessExtension();
+				if (!$extension) {
+				    // extension cannot be guessed
+				    $extension = 'bin';
+				}
+
+				$filename = $bv->respondent->id.'_'.rand(1, 99999).'.'.$extension;
+
+				$file->move($dir, $filename);
+
+				$value = $filename;
+				$col_name = 'Var';
+
+			} elseif($bv->answer_type=='Email'){ // save email in main 'respondent' table
+				$bv->respondent->email = $value;
+				R::store( $bv->respondent );
+				$col_name = 'Var';
+			}
+			elseif($bv->answer_type=='MapLocation'){
+				$col_name = 'Point';
+				$geo_col = $bv->table_response.'.'.$col_prefix.'_'.'point';
+				R::bindFunc( 'read', $geo_col, 'asText' );
+				R::bindFunc( 'write', $geo_col, 'GeomFromText' );
+				$point_num = str_replace(',', ' ', $value);
+				$value = "POINT($point_num)";
+			}
+			elseif($bv->answer_type=='Currency'){
+				currency_set($value); // save selected currency in session
+			}
+			elseif(in_array($bv->answer_type, ['MultipleChoices','Choice','Dropdown'])){ // form can submit IDs of answers rather than contents
+				$try_by_id=true;
+			}
+			elseif ($value instanceof DateTime) { // Date, DateTime, or Time
+			  $date = $value->format('Y-m-d');
+			  $time = $value->format('H:i:s');
+			  if($date=='1970-01-01'){
+			  	$col_name = 'Time';
+			  	$value = $time;
+			  } elseif($time=='00:00:00'){
+			  	$col_name = 'Date';
+			  	$value = $date;
+			  } else {
+				$col_name = 'DateTime';
+			  	$value = $value->format('Y-m-d H:i:s');
+			  }
+			} elseif(in_array($bv->answer_type, ['Phone','LongText'])){
+				$col_name = 'Var';
+			} elseif($bv->answer_type=='Password'){
+				$col_name = 'Var';
+				// TODO
+			} elseif(is_numeric($value)){
+				$col_name = 'Num';
+			}
+
+			if($col_name && $col_prefix) $col_name = $col_prefix.$col_name;
+
+			// var_dump("<p>", $col_name, $bv->answer_type, $try_by_id);
+
+			if($bv->answer_type=='Price'){ // both number & currency
+
+				currency_get(); // load existing cookie
+				currency_set($data['currency']); // set new cookie if selected
+
+				$respond[$col_name] = $value; // Price amount
+
+				$answer = answer_prepare($bv->currency); // get currency ID
+
+				$response_ids[] = answer_response_save( $answer, $respond ); // save Price & currency ID
+
+				response_save_custom($value); // amount
+				response_save_custom($bv->currency, 'currency'); // currency code
+
+			} elseif($col_name && !$try_by_id){ // simply store in appropriate column of response table
+
+				$respond[$col_name] = $value; // store
+
+				$response_ids[] = response_save($respond);
+
+				response_save_custom($value);
+
+
+			} elseif(is_array($value)) { // store (multiple answers) in answer table
+
+				$try_by_id=true;
+				$multii=0;
+
+				foreach ($value as $linked_value) {
+
+					if($linked_value){
+
+						$answer = answer_prepare($linked_value, $try_by_id);
 
 						if($answer){
 
-							if($ord>0) unset( $bv->response );  // create an additional response row
+							if($multii>0) unset($bv->response);  // so an additional response row gets created
 
-							$respond[$col_prefix.'Num'] = $ord;
+							$response_ids[] = answer_response_save( $answer );
 
-							$response_ids[] = answer_response_save( $answer, $respond );
+							$answers[] = $answer;
 
-							$ord++;
+							$multii++;
 						}
 					}
 				}
-				exit('sorted '.$ord);
-			} else {
-				return true;
+
+				response_save_custom($answers);
+
+
+			} else { // store (single answer) in answer table
+
+				if($value) $answer = answer_prepare($value, $try_by_id);
+
+				if($answer){
+					$response_ids[] = answer_response_save( $answer );
+					response_save_custom($answer);
+				}
 			}
-		} elseif($key == $bv->field_name){ // dealing with the response to current question
 
-			// defaults:
-			$try_by_id=false;
-			unset($col_name);
+		} // end if value
 
-			if($value){
+	} elseif($bv->answer_type=='Price' && $key=='currency'){
 
-				if(in_array($bv->answer_type, ['UploadImage','UploadDoc','UploadFile'])){
+		// already dealt with above
 
-					$dir = __DIR__.'/../web/uploads';
-					$file = $value;
+	} elseif($value) { // other regular field
 
-					// compute a random name and try to guess the extension (more secure)
-					$extension = $file->guessExtension();
-					if (!$extension) {
-					    // extension cannot be guessed
-					    $extension = 'bin';
-					}
-
-					$filename = $bv->respondent->id.'_'.rand(1, 99999).'.'.$extension;
-
-					$file->move($dir, $filename);
-
-					$value = $filename;
-					$col_name = 'Var';
-
-				} elseif($bv->answer_type=='Email'){ // save email in main 'respondent' table
-					$bv->respondent->email = $value;
-					R::store( $bv->respondent );
-					$col_name = 'Var';
-				}
-				elseif($bv->answer_type=='MapLocation'){
-					$col_name = 'Point';
-					$geo_col = $bv->table_response.'.'.$col_prefix.'_'.'point';
-					R::bindFunc( 'read', $geo_col, 'asText' );
-					R::bindFunc( 'write', $geo_col, 'GeomFromText' );
-					$point_num = str_replace(',', ' ', $value);
-					$value = "POINT($point_num)";
-				}
-				elseif($bv->answer_type=='Currency'){
-					currency_set($value); // save selected currency in session
-				}
-				elseif(in_array($bv->answer_type, ['MultipleChoices','Choice'])){ // form can submit IDs of answers rather than contents
-					$try_by_id=true;
-				}
-				elseif ($value instanceof DateTime) { // Date, DateTime, or Time
-				  $date = $value->format('Y-m-d');
-				  $time = $value->format('H:i:s');
-				  if($date=='1970-01-01'){
-				  	$col_name = 'Time';
-				  	$value = $time;
-				  } elseif($time=='00:00:00'){
-				  	$col_name = 'Date';
-				  	$value = $date;
-				  } else {
-					$col_name = 'DateTime';
-				  	$value = $value->format('Y-m-d H:i:s');
-				  }
-				} elseif(in_array($bv->answer_type, ['Phone','LongText'])){
-					$col_name = 'Var';
-				} elseif($bv->answer_type=='Password'){
-					$col_name = 'Var';
-					// TODO
-				} elseif(is_numeric($value)){
-					$col_name = 'Num';
-				}
-
-				if($col_name && $col_prefix) $col_name = $col_prefix.$col_name;
-
-				// var_dump("<p>", $col_name, $bv->answer_type, $try_by_id);
-
-				if($bv->answer_type=='Price'){ // both number & currency
-
-					currency_get(); // load existing cookie
-					currency_set($data['currency']); // set new cookie if selected
-
-					$respond[$col_name] = $value; // Price amount
-
-					$answer = answer_prepare($bv->currency); // get currency ID
-
-					$response_ids[] = answer_response_save( $answer, $respond ); // save Price & currency ID
-
-					response_save_custom($value); // amount
-					response_save_custom($bv->currency, 'currency'); // currency code
-
-				} elseif($col_name && !$try_by_id){ // simply store in appropriate column of response table
-
-					$respond[$col_name] = $value; // store
-
-					$response_ids[] = response_save($respond);
-
-					response_save_custom($value);
-
-
-				} elseif(is_array($value)) { // store (multiple answers) in answer table
-
-					$try_by_id=true;
-					$multii=0;
-
-					foreach ($value as $linked_value) {
-
-						if($linked_value){
-
-							$answer = answer_prepare($linked_value, $try_by_id);
-
-							if($answer){
-
-								if($multii>0) unset($bv->response);  // so an additional response row gets created
-
-								$response_ids[] = answer_response_save( $answer );
-
-								$answers[] = $answer;
-
-								$multii++;
-							}
-						}
-					}
-
-					response_save_custom($answers);
-
-
-				} else { // store (single answer) in answer table
-
-					if($value) $answer = answer_prepare($value, $try_by_id);
-
-					if($answer){
-						$response_ids[] = answer_response_save( $answer );
-						response_save_custom($answer);
-					}
-				}
-
-			} // end if value
-
-		} elseif($bv->answer_type=='Price' && $key=='currency'){
-
-			// already dealt with above
-
-		} elseif($value) { // other regular field
-
-			$respond[$key] = $value; // store
-			$response_ids[] = response_save($respond);
-			//response_save_custom($value);
-		}
-
-	} // end foreach
+		$respond[$key] = $value; // store
+		$response_ids[] = response_save($respond);
+		//response_save_custom($value);
+	}
 
 	// exit();
 	return $response_ids;

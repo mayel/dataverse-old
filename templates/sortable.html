@@ -5,10 +5,13 @@
 
    <?php
    global $sort_choices, $choice_link;
-	 // var_dump($sort_choices);
+	 // print_r($sort_choices);
+
    foreach($sort_choices as $step=>$choices){
-		 $choice_parent = array_slice($choices, 0, 1);
-		 $choices = array_slice($choices, 1);
+		 $choice_parent = array_slice($choices, 0, 1, true);
+		 // print_r($choice_parent);
+		 $choices = array_slice($choices, 1, null, true);
+		 // print_r($choices);
 		 foreach($choice_parent as $key=>$val){
 		 ?>
    		<li data-id="<?=$key?>">
@@ -18,7 +21,7 @@
    			<?php } ?>
 				<ul>
 				<?php
-					if(count($choices)>1){
+					// if(count($choices)>1){
 					foreach($choices as $key=>$val){
 		 		 ?>
 		    		<li data-id="<?=$key?>">
@@ -30,7 +33,7 @@
 
 		 				</ul>
 		    		</li>
-		    <?php }} ?>
+		    <?php } ?>
 				</ul>
    		</li>
    <?php }} ?>
@@ -58,7 +61,7 @@ var group = $('#sortable').sortable({
 
 		var jsonString = JSON.stringify(data, null, ' ');
 
-		console.log(jsonString);
+		// console.log(jsonString);
 
 		$.ajax({
             data: jsonString,

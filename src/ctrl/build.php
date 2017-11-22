@@ -6,6 +6,7 @@ use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
@@ -71,6 +72,10 @@ $app->match('/build/questionnaire', function (Request $request) use ($app) {
 	->add('questionnaire_name', null, [
 		'label' => 'Short name',
 		'attr'=>['placeholder' => 'survey'],
+	])
+	->add('continue_label', null, [
+		'label' => "Custom text for 'Continue' button",
+		'attr'=>['placeholder' => 'Continue'],
 	]);
 
 	if($bv->questionnaire->id) $output_code .= '
@@ -86,9 +91,10 @@ $app->match('/build/questionnaire', function (Request $request) use ($app) {
 	$questions = questionnaire_questions($bv->questionnaire->id);
 
 	foreach ($questions as $s) {
-		//print_r($s);
+		// print_r($s);
 		$sort_choices[$s->step][$s->id] = $s->question_text;
 	}
+	// print_r($sort_choices);
 
 	if($sort_choices){
 		$attr['style'] .= 'display:none;';
@@ -136,7 +142,7 @@ $app->match('/build/questionnaire', function (Request $request) use ($app) {
 				$i_step++;
 
 			}
-			exit('OK sorted '.$i_step);
+			exit("OK sorted $i_step / $i_step_child");
 		}
 
 		// do something with the data
@@ -155,6 +161,10 @@ $app->match('/build/questionnaire', function (Request $request) use ($app) {
 });
 
 function question_order($qid, $step=1, $step_order=null){
+	error_log("question_order");
+	error_log($qid);
+	error_log($step);
+	error_log($step_order);
 	if($qid){
 
 		$question = question_get($qid);
@@ -188,10 +198,12 @@ $app->match('/build/question', function (Request $request) use ($app) {
 	//$app['monolog']->debug('Testing the Monolog logging.');
 
 	$bv->answer_types = [
+		'Notice'=>'Show some text to the user',
 		'ShortText'=>'Text (short)',
 		'LongText'=>'Text (long)',
-		'Choice'=>'Choice from list',
-		'MultipleChoices'=>'Multiple choices from list',
+		'Choice'=>'Choice from a list',
+		'Dropdown'=>'Choice from a list (dropdown)',
+		'MultipleChoices'=>'Multiple choices from a list',
 		'Email'=>'Email address',
 		'Phone'=>'Phone number',
 		'URL'=>'Webpage / URL',
@@ -265,9 +277,10 @@ $app->match('/build/question', function (Request $request) use ($app) {
 			'label' => 'Field name',
 			'attr'=>['placeholder' => 'age'],
 		])
-		->add('question_note', null, [
+		->add('question_note', TextareaType::class, [
 			'label' => 'Note (optional)',
 			'attr'=>['placeholder' => 'All ages welcome!'],
+			'required'	  => false,
 		])
 	   ->add('answer', CollectionType::class, array(
 		   // each entry in the array will be an "email" field
@@ -387,7 +400,7 @@ $app->match('/build/action', function (Request $request) use ($app) {
 			'label' => 'Field name',
 			'attr'=>['placeholder' => 'age'],
 		])
-		->add('question_note', null, [
+		->add('question_note', TextareaType::class, [
 			'label' => 'Note (optional)',
 			'attr'=>['placeholder' => 'All ages welcome!'],
 		])

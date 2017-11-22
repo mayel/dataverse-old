@@ -152,7 +152,7 @@ $app->match('/question', function (Request $request) use ($app) {
 	foreach ($bv->questions as $bv->question) {
 		// print_r($bv->question);
 
-		$bv->questionnaire = $bv->question->questionnaire; // get from table
+		if(!$bv->questionnaire) $bv->questionnaire = $bv->question->questionnaire; // get from table
 
 		$bv->question_id = $bv->question->id;
 		$bv->current_step = $bv->question->step;
@@ -169,6 +169,7 @@ $app->match('/question', function (Request $request) use ($app) {
 
 		$attr = array('class' => ' fieldtype-'.$bv->question->answer_type. ' field-'.$bv->field_name);
 
+		$attr['help'] = $bv->question->question_note;
 
 		switch ($bv->question->answer_type) {
 			case "LongText":
@@ -367,6 +368,9 @@ $app->match('/question', function (Request $request) use ($app) {
 //				));
 
 				break;
+			case "Dropdown":
+				$dropdown=true;
+
 			case "Choice":
 
 				//$answers = R::findAll( 'answer', $bv->question);
@@ -383,7 +387,7 @@ $app->match('/question', function (Request $request) use ($app) {
 				$form_builder->add($bv->field_name, ChoiceType::class, array(
 					'label' => $bv->field_label,
 					'choices' => $choices,
-					'expanded' => true,
+					'expanded' => !$dropdown,
 					'multiple' => false,
 					'attr'	  => $attr,
 					//'label_attr'	  => ['class'=>'btn btn-primary'],
@@ -472,7 +476,12 @@ $app->match('/question', function (Request $request) use ($app) {
 				));
 
 				break;
+				case "Notice":
 
+				$output_code .= '<div class="form-group"><label class="control-label required" for="form_email">'.$bv->field_label.'</label>
+				<p>'.$bv->question->question_note.'</div>';
+
+					break;
 			default:
 
 				if($bv->field_name) $form_builder->add($bv->field_name, TextType::class, array(
@@ -510,7 +519,7 @@ $app->match('/question', function (Request $request) use ($app) {
 
 		// do something with the data
 
-		$response_ids = respondent_question_responses_save($data);
+		$response_ids = respondent_questions_responses_save($data);
 
 		return $app->redirect('?after='.$bv->current_step);
 
@@ -529,5 +538,5 @@ $app->match('/question', function (Request $request) use ($app) {
 	} // end data
 
 	// display the form
-	return $app['twig']->render('question.html.twig', array('form' => $form->createView(), 'output_code' => $output_code, 'current_step' => $bv->current_step));
+	return $app['twig']->render('question.html.twig', array('form' => $form->createView(), 'output_code' => $output_code, 'current_step' => $bv->current_step, 'title' => $bv->questionnaire->questionnaire_title , 'continue_label' => ($bv->questionnaire->continue_label ? $bv->questionnaire->continue_label : 'Continue')));
 });
