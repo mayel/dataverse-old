@@ -90,12 +90,13 @@ $app->match('/build/questionnaire', function (Request $request) use ($app) {
 	$sortable->links->delete = '/build/question?id=';
 
 	$sortable->choices = [];
-	$questions = questionnaire_questions($bv->questionnaire->id);
+	$questions = questionnaire_steps($bv->questionnaire->id);
+	if(!$questions) $questions = questionnaire_questions($bv->questionnaire->id);
 
 	foreach ($questions as $s) {
 		// print_r($s);
-		if(!$s->step) $s->step = $prev_step+99;
-		$sortable->choices[$s->step][$s->id] = $s->question_text;
+		// if(!$s->step) $s->step = $prev_step+99;
+		$sortable->choices[$s->step][$s->question->id ? $s->question->id : $s->id] = $s->question->question_text ? $s->question->question_text : $s->question_text;
 		$prev_step = $s->step;
 	}
 
@@ -133,16 +134,18 @@ $app->match('/build/questionnaire', function (Request $request) use ($app) {
 
 		if($data['sortable']){ // user is sorting the questions
 
+			steps_reset($bv->questionnaire->id); // wipe
+
 			$i_step=1;
 			foreach ($data['sortable'] as $so) {
 
-				question_order($so->id, $i_step);
+				question_order_save($so->id, $i_step, 1);
 
 				if(count($so->children[0])){ // has sub-questions
-					$i_step_child=1;
+					$i_step_child=2;
 					foreach ($so->children[0] as $so_child) {
 						// error_log(print_r($so_child, true));
-						question_order($so_child->id, $i_step, $i_step_child);
+						question_order_save($so_child->id, $i_step, $i_step_child);
 						$i_step_child++;
 					}
 				}
@@ -170,33 +173,12 @@ $app->match('/build/questionnaire', function (Request $request) use ($app) {
 
 
 
-function question_order($qid, $step=1, $step_order=null){
-	// error_log("question_order");
-	// error_log($qid);
-	// error_log($step);
-	// error_log($step_order);
-	if($qid){
-
-		$question = question_get($qid);
-
-		if($question){
-
-			$question->step = $step;
-			if($step_order) $question->step_order = $step_order;
-
-			R::store( $question );
-
-		}
-	}
-}
-
 $app->delete('/build/question', function (Request $request) use ($app) {
 	global $bv;
 
 	admin_auth();
 
-		if($_REQUEST['id'] && ($item = R::load( 'question', $_REQUEST['id'] ))){
-			R::trash( $item );
+		if($_REQUEST['id'] && question_delete($_REQUEST['id'])){
 			exit("OK");
 		}
 		else exit("Error");
@@ -339,9 +321,10 @@ $app->match('/build/question', function (Request $request) use ($app) {
 
 		if(is_array($data)){ // new question
 			$data['questionnaire'] = $bv->questionnaire;
-			$num_step = $app['session']->get('num_steps');
-			if(!$num_step) $num_step = rand(55,98);
-			$data['step'] = $num_step+1; // increment
+
+			// $num_step = $app['session']->get('num_steps');
+			// if(!$num_step) $num_step = rand(55,98);
+			// $data['step'] = $num_step+1; // increment
 
 		} else { // edit
 			$data = $data->export();
@@ -352,7 +335,11 @@ $app->match('/build/question', function (Request $request) use ($app) {
 		$bv->item = $bv->question;
 		// var_dump('item',$bv->item);
 		// var_dump('data', $data);
+
 		$id = item_save('question', $data);
+
+		question_order_save($id, null);
+
 		// var_dump('id',$id);
 		// var_dump('item after',$bv->item);
 		// exit();

@@ -53,6 +53,12 @@ function ajax_delete(endpoint_url, element) {
 });
 }
 
+function clone_to(element, to) {
+	$( element ).clone().appendTo( $( to ) );
+}
+
+
+
 function back_with_fallback(url) {
 	url = url || '/';
 	var prevPage = window.location.href;

@@ -21,3 +21,5 @@ composer.lock
 # Misc.
 custom/*
 src/Mayel/FormExtrasBundle/Form/Type/FieldsetType 2.php
+custom_misc
+custom

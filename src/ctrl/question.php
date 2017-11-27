@@ -46,8 +46,6 @@ $app['my.formFactory'] = Forms::createFormFactoryBuilder()
 $app->match('/question', function (Request $request) use ($app) {
 	global $bv;
 
-	$output_code = '';
-
 	// some default data for when the form is displayed the first time
 	$data = array(
 		'ts_latest' => R::isoDateTime(),
@@ -111,10 +109,20 @@ $app->match('/question', function (Request $request) use ($app) {
 
     if(!$bv->current_step) $bv->current_step = 1; // default to 1st step
 
-		$bv->questions = R::findAll( 'question', ' questionnaire_id = ? AND step = ? ORDER BY step_order ASC ', [$bv->questionnaire->id, $bv->current_step] );
+		// $bv->questions = R::findAll( 'question', ' questionnaire_id = ? AND step = ? ORDER BY step_order ASC ', [$bv->questionnaire->id, $bv->current_step] );
+		// R::fancyDebug( TRUE );
+
+		$steps = R::find( 'step', ' questionnaire_id = ? AND step = ? ORDER BY `order` ASC', [$bv->questionnaire->id, $bv->current_step] );
+
+		foreach ($steps as $s){
+			// var_dump($s, $s->question);
+			$s->question->step = $s->step;
+			$bv->questions[] = $s->question;
+		}
+
 	}
 
-	if(!count($bv->questions)) $bv->questions[0] = R::findOne( 'question', ' questionnaire_id = ? ORDER BY step ASC, step_order ASC LIMIT 1 ', [$bv->questionnaire->id] ); // fallback to load first question
+	if(!count($bv->questions))  $bv->questions = questionnaire_questions($bv->questionnaire->id); // fallback to load all questions
 
 	// if(isset($_GET['after']) || !$bv->question_id){ // forward
   //
@@ -148,7 +156,8 @@ $app->match('/question', function (Request $request) use ($app) {
 	//var_dump($form_builder);
 	// var_dump($bv->questions);
 
-	foreach ($bv->questions as $bv->question) {
+	// var_dump($bv->questions);
+foreach ($bv->questions as $bv->question) {
 		// print_r($bv->question);
 
 		if(!$bv->questionnaire) $bv->questionnaire = $bv->question->questionnaire; // get from table
@@ -169,6 +178,15 @@ $app->match('/question', function (Request $request) use ($app) {
 		$attr = array('class' => ' fieldtype-'.$bv->question->answer_type. ' field-'.$bv->field_name);
 
 		$attr['help'] = $bv->question->question_note;
+
+		if($bv->respondent_id) $r = response_by_question_id($bv->question_id, $bv->respondent_id); // laod previous response
+		$prev_response = $r->the_var;
+		if(!$prev_response) $prev_response = $r->the_num;
+		if(!$prev_response) $prev_response = $r->the_date;
+		if(!$prev_response) $prev_response = $r->the_point;
+		if(!$prev_response && $r->answer) $prev_response = $r->answer->answer;
+
+		$attr['value'] = $prev_response;
 
 		switch ($bv->question->answer_type) {
 			case "LongText":
@@ -273,7 +291,7 @@ $app->match('/question', function (Request $request) use ($app) {
 				break;
 			case "Phone":
 
-				$output_code .= '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/9.0.14/css/intlTelInput.css" />
+				$output_after .= '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/9.0.14/css/intlTelInput.css" />
 				<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/9.0.14/js/intlTelInput.min.js"></script>';
 
 				//$attr['class'] .= ' ';
@@ -350,7 +368,7 @@ $app->match('/question', function (Request $request) use ($app) {
 				break;
 			case "Password":
 
-				$output_code .= '<script src="https://cdnjs.cloudflare.com/ajax/libs/hideshowpassword/2.0.10/hideShowPassword.min.js"></script><link rel="stylesheet" href="/css/pw.wink.css">';
+				$output_after .= '<script src="https://cdnjs.cloudflare.com/ajax/libs/hideshowpassword/2.0.10/hideShowPassword.min.js"></script><link rel="stylesheet" href="/css/pw.wink.css">';
 
 				$form_builder->add($bv->field_name, PasswordType::class, array(
 					'label' => $bv->field_label,
@@ -438,11 +456,11 @@ $app->match('/question', function (Request $request) use ($app) {
 
 				$attr['style'] .= 'display:none;';
 
-				$output_code .= "<script>
+				$output_after .= "<script>
 				var loc_field = '#form_$bv->field_name';
 				</script>";
 
-				$output_code .= file_get_contents($bv->base_path.'/templates/map.html');
+				$output_before .= file_get_contents($bv->base_path.'/templates/map.html');
 
 				$form_builder->add($bv->field_name, TextType::class, array(
 					'label' => $bv->field_label,
@@ -462,11 +480,11 @@ $app->match('/question', function (Request $request) use ($app) {
 
 				$attr['style'] .= 'display:none;';
 
-				$output_code .= "<script>
+				$output_after .= "<script>
 				var field_name = '$bv->field_name';
 				</script>";
 
-				$output_code .= get_include($bv->base_path.'templates/sortable.html');
+				$output_before .= get_include($bv->base_path.'templates/sortable.html');
 
 				$form_builder->add($bv->field_name, TextType::class, array(
 					'label' => $bv->field_label,
@@ -477,7 +495,7 @@ $app->match('/question', function (Request $request) use ($app) {
 				break;
 				case "Notice":
 
-				$output_code .= '<div class="form-group"><label class="control-label required" for="form_email">'.$bv->field_label.'</label>
+				$output_before .= '<div class="form-group"><label class="control-label required" for="form_email">'.$bv->field_label.'</label>
 				<p>'.$bv->question->question_note.'</div>';
 
 					break;
@@ -541,9 +559,9 @@ $app->match('/question', function (Request $request) use ($app) {
 	} // end data
 
 
-	$next_question = R::findOne( 'question', ' questionnaire_id = ? AND step > ? ORDER BY step ASC LIMIT 1 ', [$bv->questionnaire->id, $bv->current_step] );
-	if($next_question->id) $bv->has_more_questions = true;
+	$next_step = R::findOne( 'step', ' questionnaire_id = ? AND step > ? LIMIT 1 ', [$bv->questionnaire->id, $bv->current_step] );
+	if($next_step->id) $bv->has_more_questions = true;
 
 	// display the form
-	return $app['twig']->render('question.html.twig', array('form' => $form->createView(), 'output_code' => $output_code, 'current_step' => $bv->current_step, 'has_more_questions' => $bv->has_more_questions , 'title' => $bv->questionnaire->questionnaire_title , 'continue_label' => ($bv->questionnaire->continue_label ? $bv->questionnaire->continue_label : 'Continue')));
+	return $app['twig']->render('question.html.twig', array('form' => $form->createView(), 'output_before' => $output_before, 'output_after' => $output_after, 'current_step' => $bv->current_step, 'has_more_questions' => $bv->has_more_questions , 'title' => $bv->questionnaire->questionnaire_title , 'continue_label' => ($bv->questionnaire->continue_label ? $bv->questionnaire->continue_label : 'Continue')));
 });

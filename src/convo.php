@@ -58,12 +58,15 @@ function respondent_questions_responses_save($data, $col_prefix = "the") { // sa
 	//$bv->response = R::dispense( $bv->table_response ); // init response
 
 	foreach ($data as $key => $value) {
+		// var_dump($key , $value, $bv->questions_by_field[$key]->question_text);
 
 		if($bv->questions_by_field[$key]) $bv->question = $bv->questions_by_field[$key]; // to handle multiple questions on one screen
 
-		return respondent_question_responses_save($key, $value, $data, $col_prefix = "the");
+		// return
+			respondent_question_responses_save($key, $value, $data, $col_prefix = "the");
 
 	}
+	// exit();
 }
 
 function respondent_question_responses_save($key, $value, $data, $col_prefix = "the") { // save object in DB, with support for many to many for items with array of data
@@ -72,7 +75,7 @@ function respondent_question_responses_save($key, $value, $data, $col_prefix = "
 	$bv->field_name = ($bv->question->question_name ? $bv->question->question_name : $bv->question->id);
 	$bv->answer_type = ($bv->question->answer_type);
 
-	if($bv->answer_type=='Sortable'){ // dealing with an ajax list-sorting
+	if($bv->answer_type=='Sortable'){ // special case when dealing with an ajax list-sorting
 		$ord=0;
 
 		if(is_array($value)){
@@ -310,12 +313,11 @@ function response_save($respond) {
 
 		$bv->response->import( $respond );
 
-		//
 		//$bv->response->setMeta("buildcommand.unique", array(array('respondent', 'question', 'answer')));
-
 
 		$id = R::store( $bv->response ); // save
 
+		unset($bv->response);
 		//exit($id);
 		return $id;
 
@@ -388,7 +390,7 @@ function questionnaire_get($id) {
 }
 
 function questionnaire_questions($id) {
-	return R::find( 'question', ' questionnaire_id = ? ORDER BY step ASC, step_order ASC ', [ $id ]  );
+	return R::find( 'question', ' questionnaire_id = ? ORDER BY id ASC ', [ $id ]  );
 }
 
 function question_get($id) {
@@ -432,4 +434,54 @@ function respondents_by_status($status) {
 function a_respondent_by_status($status) {
 	global $bv;
 	return R::findOne( $bv->table_respondent, ' status = ? ', [ $status ]  );
+}
+
+
+function question_delete($id) {
+	if($id && ($item = R::load( 'question', $id ))){
+		R::trash( $item );
+		$items = steps_by_question_id( $id );
+		if($items) R::trashAll( $items );
+	}
+}
+
+function questionnaire_steps($id) {
+	return R::find( 'step', ' questionnaire_id = ? ORDER BY step ASC, `order` ASC ', [ $id ]  );
+}
+
+function step_get($id) {
+	return data_by_id( 'step', $id );
+}
+
+function steps_by_question_id($id) {
+	return R::find( 'step', ' question_id = ? ', [ $id ]  );
+}
+
+function steps_reset($questionnaire_id) {
+	$steps= R::find( 'step', ' questionnaire_id = ?', [ $questionnaire_id ]  );
+	R::trashAll( $steps );
+}
+
+function question_order_save($question_id, $step_num=1, $step_order=null){
+	global $bv;
+
+	// error_log("question_order");
+	// error_log($question_id);
+	// error_log($step_num);
+	// error_log($step_order);
+	// error_log($bv->questionnaire->id);
+
+	if($question_id && $bv->questionnaire->id){
+
+		$step = R::dispense( 'step' );
+		error_log($step);
+
+		$step->question_id = $question_id;
+		$step->questionnaire_id = $bv->questionnaire->id;
+		$step->step = $step_num;
+		$step->order = $step_order;
+
+		R::store( $step );
+
+	}
 }

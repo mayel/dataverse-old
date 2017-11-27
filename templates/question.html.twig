@@ -11,10 +11,11 @@
 
   	<form action="?step={{current_step}}" method="post" enctype="multipart/form-data" class="">
 
+				{{ output_before|raw }}
+
   	    {{ form_widget(form) }}
 
-
-  	    {{ output_code|raw }}
+				{{ output_after|raw }}
 
 			{% if continue_label and has_more_questions %}
 	      <div class="form-group">
