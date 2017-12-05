@@ -32,6 +32,8 @@ use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
 
+use Symfony\Component\Intl\Intl;
+
 $app['my.formFactory'] = Forms::createFormFactoryBuilder()
     ->addExtension(new ValidatorExtension(Validation::createValidator()))
     ->addExtension(new HttpFoundationExtension())
@@ -310,12 +312,23 @@ foreach ($bv->questions as $bv->question) {
 
 				$attr['class'] .= ' select2';
 
+				\Locale::setDefault('en');
+
+				$choices = [];
+				foreach ($bv->question->sharedAnswerList as $s) {
+					//print_r($s);
+					$cname = Intl::getCurrencyBundle()->getCurrencyName($s->answer);
+					$choices[$cname ? $cname : $s->answer] = $s->answer;
+				}
+
+
 				$form_builder->add($bv->field_name, CurrencyType::class, array(
 					'label' => $bv->field_label,
 					'placeholder' => 'Select a currency',
 					'attr'	  => $attr,
 					'data'	  => $bv->currency,
-				));
+					'choices'	  => $choices,
+			));
 
 				break;
 			case "Price":

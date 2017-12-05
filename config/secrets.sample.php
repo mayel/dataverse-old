@@ -20,6 +20,7 @@ $bv->config->mail->subject_default = 'Support Message';
 $bv->config->mail->mailgun_key = 'key-xyz';
 $bv->config->mail->domain = "sandbox-xyz.mailgun.org";
 
+$bv->config->admin_token = '123changeme';
 
 $bv->config->bot = [
 //    'hipchat_urls' => [
