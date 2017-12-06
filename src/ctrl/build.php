@@ -239,6 +239,7 @@ $app->match('/build/question', function (Request $request) use ($app) {
 		'UploadDoc'=>'Upload Document',
 		'UploadFile'=>'Upload Any File',
 		'Sortable'=>'Sortable List',
+		'Include'=>'Embed PHP Script from server /custom/ directory',
 	];
 
 	$bv->answer_examples = [

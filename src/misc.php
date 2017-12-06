@@ -4,7 +4,7 @@ use Mailgun\Mailgun;
 
 function get_include($file){
     ob_start();
-    require($file);
+    include($file);
     return ob_get_clean();
 }
 

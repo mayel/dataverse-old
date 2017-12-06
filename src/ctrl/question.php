@@ -506,12 +506,17 @@ foreach ($bv->questions as $bv->question) {
 				));
 
 				break;
-				case "Notice":
+			case "Notice":
 
 				$output_before .= '<div class="form-group"><label class="control-label required" for="form_email">'.$bv->field_label.'</label>
 				<p>'.$bv->question->question_note.'</div>';
 
-					break;
+				break;
+			case "Include":
+
+				$output_after .= get_include($bv->base_path.'custom/'.$bv->field_label);
+
+				break;
 			default:
 
 				if($bv->field_name) $form_builder->add($bv->field_name, TextType::class, array(
