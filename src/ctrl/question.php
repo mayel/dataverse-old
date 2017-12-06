@@ -412,7 +412,7 @@ foreach ($bv->questions as $bv->question) {
 					$choices[$s->answer] = $s->id;
 				}
 
-				//$attr['class'] .= ' select2';
+				$attr['class'] .= ' select2';
 
 				$form_builder->add($bv->field_name, ChoiceType::class, array(
 					'label' => $bv->field_label,

@@ -5,7 +5,7 @@
     "type": "project",
     "require": {
         "php": ">=5.5.9",
-        "silex/silex": "~2.0",
+        "silex/silex": "~2.2",
         "silex/web-profiler": "~2.0",
         "symfony/asset": "~2.8|^3.0",
         "symfony/browser-kit": "~2.8|^3.0",
@@ -24,7 +24,7 @@
         "symfony/validator": "~2.8|^3.0",
         "symfony/cache": "^3.2",
         "gabordemooij/redbean": "^4.3",
-        "mpociot/botman": "^1.5",
+        "botman/botman": "^1.5",
         "mailgun/mailgun-php": "^2.3",
         "egulias/email-validator": "^2.1",
         "php-http/guzzle6-adapter": "^1.1",

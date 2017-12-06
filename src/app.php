@@ -11,8 +11,16 @@ use Silex\Provider\FormServiceProvider;
 $app = new Application();
 $app->register(new ServiceControllerServiceProvider());
 $app->register(new AssetServiceProvider());
+
+$app->register(new FormServiceProvider());
+//$app->register(new AdamQuaile\Bundle\FieldsetBundle\AdamQuaileFieldsetBundle()); /// added
+
 $app->register(new TwigServiceProvider());
-$app->register(new HttpFragmentServiceProvider()); 
+
+use Symfony\Component\Form\FormRenderer;
+$app->extend('twig.runtimes', function ($array) { $array[FormRenderer::class] = 'twig.form.renderer'; return $array; });
+
+$app->register(new HttpFragmentServiceProvider());
 
 $app->register(new Silex\Provider\SessionServiceProvider());
 
@@ -34,8 +42,6 @@ $app->register(new Silex\Provider\SecurityServiceProvider(), array(
 
 ));
 
-$app->register(new FormServiceProvider()); /// added
-//$app->register(new AdamQuaile\Bundle\FieldsetBundle\AdamQuaileFieldsetBundle()); /// added
 
 // Paginator
 require_once('paginator_provider.php');
@@ -53,5 +59,6 @@ $app['twig'] = $app->extend('twig', function ($twig, $app) {
 
     return $twig;
 });
+
 
 return $app;
