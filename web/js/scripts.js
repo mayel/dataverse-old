@@ -59,8 +59,8 @@ function clone_to(element, to) {
 
 
 
-function back_with_fallback(url) {
-	url = url || '/';
+function back_with_fallback(element, url) {
+	url = $(element).attr('href') || url || '/';
 	var prevPage = window.location.href;
 
 	window.history.go(-1);
