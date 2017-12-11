@@ -3,6 +3,12 @@
 {% form_theme form with ['bootstrap_4_layout.html.twig', _self] %}
 {% block title %}{{title}}{% endblock %}
 
+{% block customcode_widget %}
+    <div class="customcode_widget">
+			{% if attr.html %}{{ attr.html|raw }}{% endif %}
+    </div>
+{% endblock %}
+
 {% block content %}
 
 <div class="row justify-content-md-center h-100" >

@@ -43,6 +43,7 @@ $app['my.formFactory'] = Forms::createFormFactoryBuilder()
 //use AdamQuaile\Bundle\FieldsetBundle\AdamQuaileFieldsetBundle;
 //use Mayel\FormExtrasBundle\Form\Type\FieldsetType;
 
+use Mayel\FormExtrasBundle\Form\Type\CustomcodeType;
 
 
 $app->match('/question', function (Request $request) use ($app) {
@@ -508,13 +509,30 @@ foreach ($bv->questions as $bv->question) {
 				break;
 			case "Notice":
 
-				$output_before .= '<div class="form-group"><label class="control-label required" for="form_email">'.$bv->field_label.'</label>
+				$html = '<div class="form-group"><label class="control-label required" for="form_email">'.$bv->field_label.'</label>
 				<p>'.$bv->question->question_note.'</div>';
+				$attr['html'] = $html;
+
+				$form_builder->add($bv->field_name, CustomcodeType::class, array(
+					// 'label' => $bv->field_label,
+					// 'data' => $bv->field_label,
+					'attr'	  => $attr,
+					// 'html'	  => $output_after
+				));
 
 				break;
 			case "Include":
 
-				$output_after .= get_include($bv->base_path.'custom/'.$bv->field_label);
+				$html = '<div class="form-group"><label class="control-label required" for="form_email">'.$bv->field_label.'</label>
+				<p>' . get_include($bv->base_path.'custom/'.$bv->field_name);
+				$attr['html'] = $html;
+
+				$form_builder->add($bv->field_label, CustomcodeType::class, array(
+					// 'label' => $bv->field_label,
+					// 'data' => $bv->field_label,
+					'attr'	  => $attr,
+					// 'html'	  => $output_after
+				));
 
 				break;
 			default:
