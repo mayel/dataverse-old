@@ -291,10 +291,20 @@ $app->match('/build/question', function (Request $request) use ($app) {
 		->add('question_name', null, [
 			'label' => 'Field name',
 			'attr'=>['placeholder' => 'age'],
+			'required'	  => false,
+		])
+		->add('question_default_answer', null, [
+			'label' => 'Default value (if any)',
+			'required'	  => false,
 		])
 		->add('question_note', TextareaType::class, [
 			'label' => 'Note (optional)',
 			'attr'=>['placeholder' => 'All ages welcome!'],
+			'required'	  => false,
+		])
+		->add('continue_label', null, [
+			'label' => "Custom text for button (if applicable)",
+			'attr'=>['placeholder' => 'Continue'],
 			'required'	  => false,
 		])
 	   ->add('answer', CollectionType::class, array(

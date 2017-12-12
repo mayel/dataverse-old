@@ -178,6 +178,8 @@ foreach ($bv->questions as $bv->question) {
 
 		$bv->questions_by_field[$bv->field_name] = $bv->question;
 
+		if($bv->question->continue_label) $bv->questionnaire->continue_label = $bv->question->continue_label; // custom per-question button
+
 		$attr = array('class' => ' fieldtype-'.$bv->question->answer_type. ' field-'.$bv->field_name);
 
 		$attr['help'] = $bv->question->question_note;
@@ -189,7 +191,9 @@ foreach ($bv->questions as $bv->question) {
 		if(!$prev_response) $prev_response = $r->the_point;
 		if(!$prev_response && $r->answer) $prev_response = $r->answer->answer;
 
-		$attr['value'] = $prev_response;
+		if($r->answer) $prev_answer_id = $r->answer->id;
+
+		$attr['value'] = $prev_response ? $prev_response : $bv->question->question_default_answer;
 
 		switch ($bv->question->answer_type) {
 			case "LongText":
@@ -322,6 +326,7 @@ foreach ($bv->questions as $bv->question) {
 					$choices[$cname ? $cname : $s->answer] = $s->answer;
 				}
 
+				if($attr['value']) $bv->currency = $attr['value'];
 
 				$form_builder->add($bv->field_name, CurrencyType::class, array(
 					'label' => $bv->field_label,
@@ -386,14 +391,12 @@ foreach ($bv->questions as $bv->question) {
 
 				$form_builder->add($bv->field_name, PasswordType::class, array(
 					'label' => $bv->field_label,
-					//'choice_value' => '',
 					//'placeholder' => 'Choose a password',
 					'attr'	  => $attr
 				));
 
 //				$form_builder->add($bv->field_name.'-check', PasswordType::class, array(
 //					'label' => 'Type it again',
-//					//'choice_value' => '',
 //					//'placeholder' => 'Choose a password',
 //					'attr'	  => $attr
 //				));
@@ -413,7 +416,9 @@ foreach ($bv->questions as $bv->question) {
 					$choices[$s->answer] = $s->id;
 				}
 
-				$attr['class'] .= ' select2';
+				if($dropdown) $attr['class'] .= ' select2';
+
+				$data = $prev_answer_id;
 
 				$form_builder->add($bv->field_name, ChoiceType::class, array(
 					'label' => $bv->field_label,
@@ -421,12 +426,13 @@ foreach ($bv->questions as $bv->question) {
 					'expanded' => !$dropdown,
 					'multiple' => false,
 					'attr'	  => $attr,
+					'data'	  => $data,
 					//'label_attr'	  => ['class'=>'btn btn-primary'],
 					//'choice_attr'	  => ['class'=>'xyz']
 				));
+				unset($dropdown);
 
 				break;
-
 			case "MultipleChoices":
 
 				//$answers = R::findAll( 'answer', $bv->question);
@@ -509,7 +515,7 @@ foreach ($bv->questions as $bv->question) {
 				break;
 			case "Notice":
 
-				$html = '<div class="form-group"><label class="control-label required" for="form_email">'.$bv->field_label.'</label>
+				$html = '<div class="form-group" id="'.$bv->field_name.'"><label class="form-control-label required">'.$bv->field_label.'</label>
 				<p>'.$bv->question->question_note.'</div>';
 				$attr['html'] = $html;
 
@@ -523,8 +529,8 @@ foreach ($bv->questions as $bv->question) {
 				break;
 			case "Include":
 
-				$html = '<div class="form-group"><label class="control-label required" for="form_email">'.$bv->field_label.'</label>
-				<p>' . get_include($bv->base_path.'custom/'.$bv->field_name);
+				$html = '<div class="form-group" id="'.$bv->field_name.'"><label class="form-control-label required" for="form_email">'.$bv->field_label.'</label>
+				' . get_include($bv->base_path.'custom/'.$bv->field_name).'</div>';
 				$attr['html'] = $html;
 
 				$form_builder->add($bv->field_label, CustomcodeType::class, array(
