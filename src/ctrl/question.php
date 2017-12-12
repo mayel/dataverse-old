@@ -516,7 +516,7 @@ foreach ($bv->questions as $bv->question) {
 			case "Notice":
 
 				$html = '<div class="form-group" id="'.$bv->field_name.'"><label class="form-control-label required">'.$bv->field_label.'</label>
-				<p>'.$bv->question->question_note.'</div>';
+				<p>'.nl2br($bv->question->question_note).'</div>';
 				$attr['html'] = $html;
 
 				$form_builder->add($bv->field_name, CustomcodeType::class, array(
