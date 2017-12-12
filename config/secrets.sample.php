@@ -1,5 +1,5 @@
 <?php
-// copy this file as /custom/secrets.php
+// copy this file as /home/app/custom/secrets.php
 
 $bv->db_type = 'mysql'; // other options: postgres, sqlite
 

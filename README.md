@@ -15,7 +15,7 @@ Your custom config directory (start by copying `config/secrets.sample.php` to th
 
   `docker build -t dataverse . && docker run -d -p 8080:80 --mount type=bind,source="/path/to/your/custom_directory",target=/home/app/custom dataverse`
 
-
+Once you're up and running, go to http://localhost/admin?token=123changeme to create your first questionnaire. 
 
 ### Without Docker ###
 
