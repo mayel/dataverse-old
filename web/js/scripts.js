@@ -41,6 +41,12 @@ $(document).ready(function() {
 	  placeholder: "Start typing your language & select it",
 	});
 
+	//  the following simple make textboxes "Auto-Expand" when typed in
+	$("textarea").keyup(function(e) {
+		$(this).height(1).height(this.scrollHeight + parseFloat($(this).css("borderTopWidth")) + parseFloat($(this).css("borderBottomWidth")));
+	});
+
+
 });
 
 function ajax_delete(endpoint_url, element) {
