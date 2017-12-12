@@ -439,8 +439,8 @@ function a_respondent_by_status($status) {
 
 function question_delete($id) {
 	if($id && ($item = R::load( 'question', $id ))){
-		R::trash( $item );
 		$items = steps_by_question_id( $id );
+		R::trash( $item );
 		if($items) R::trashAll( $items );
 	}
 }
