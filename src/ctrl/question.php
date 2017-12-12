@@ -519,7 +519,7 @@ foreach ($bv->questions as $bv->question) {
 				<p>'.nl2br($bv->question->question_note).'</div>';
 				$attr['html'] = $html;
 
-				$form_builder->add($bv->field_name, CustomcodeType::class, array(
+				$form_builder->add(sanitize_user($bv->field_name), CustomcodeType::class, array(
 					// 'label' => $bv->field_label,
 					// 'data' => $bv->field_label,
 					'attr'	  => $attr,
@@ -529,11 +529,11 @@ foreach ($bv->questions as $bv->question) {
 				break;
 			case "Include":
 
-				$html = '<div class="form-group" id="'.$bv->field_name.'"><label class="form-control-label required" for="form_email">'.$bv->field_label.'</label>
+				$html = '<div class="form-group" id="'.$bv->field_name.'"><label class="form-control-label required">'.$bv->field_label.'</label>
 				' . get_include($bv->base_path.'custom/'.$bv->field_name).'</div>';
 				$attr['html'] = $html;
 
-				$form_builder->add($bv->field_label, CustomcodeType::class, array(
+				$form_builder->add(sanitize_user($bv->field_name), CustomcodeType::class, array(
 					// 'label' => $bv->field_label,
 					// 'data' => $bv->field_label,
 					'attr'	  => $attr,
