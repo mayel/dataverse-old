@@ -20,6 +20,8 @@ composer.lock
 
 # Misc.
 custom/*
-src/Mayel/FormExtrasBundle/Form/Type/FieldsetType 2.php
 custom_misc
 custom
+templates/bootstrap_4_layout.html.twig
+templates/bootstrap_base_layout.html.twig
+templates/form_table_layout.html.twig
