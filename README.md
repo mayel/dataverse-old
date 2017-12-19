@@ -11,7 +11,7 @@ Some variables can be set in Dockerfile, such as `ERRORS` to toggle error report
 
 Within the container, the app is in `/home/app` and the public web root is `/home/app/web` which will be served on port 80.
 
-Your custom config directory (start by copying `config/secrets.sample.php` to that directory, rename to `secrets.php`, and configure with your DB details, etc) should be mounted as `/home/app/custom`:
+Your custom config directory (start by copying `config/secrets.sample.php` to that directory, rename to `secrets.php`, and configure with your DB details, secret keys, etc) should be mounted as `/home/app/custom`:
 
   `docker build -t dataverse . && docker run -d -p 8080:80 --mount type=bind,source="/path/to/your/custom_directory",target=/home/app/custom dataverse`
 
@@ -33,7 +33,7 @@ Run `composer install` to get PHP libraries / dependencies
 
 Import the SQL DB dump (or just create a DB and the tables will be created for you)
 
-Copy `config/secrets.sample.php` to `custom/secrets.php` and enter DB details, along with other options (such as Mandrill details for email notifications).
+Copy `config/secrets.sample.php` to `custom/secrets.php` and enter DB details, along with other options like your secret keys (and Mailgun details for email notifications).
 
 Configure your web server to serve the `web/` folder
 
