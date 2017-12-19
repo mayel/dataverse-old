@@ -4,35 +4,39 @@ global $bv;
 header('Content-Type: application/javascript');
 ?>
 
-function load_form() {
+function dataverse_open_form() {
+
 	$('<link>').attr('rel','stylesheet')
 	  .attr('type','text/css')
-	  .attr('href',"<?=$bv->config->home_url?>css/embed.css")
+	  .attr('href',"<?=$bv->config->home_url?>css/embed.css?v2")
 	  .appendTo('head');
 
 	$('body').append(
 	  $('<div/>')
-	    .attr("id", "form_black_out")
+	    .attr("id", "dataverse_black_out")
 	);
 	$('body').append(
 	  $('<div/>')
-	    .attr("id", "form_contain")
+	    .attr("id", "dataverse_contain")
 	);
-	$('#form_contain').append(
+	$('#dataverse_contain').append(
 	  $('<div/>')
-	    .attr("id", "form_loader")
+	    .attr("id", "dataverse_loader")
 	);
-	$('#form_contain').append(
+	$('#dataverse_contain').append(
 	  $('<div/>')
-	    .attr("id", "form_contain_embed")
+	    .attr("id", "dataverse_contain_embed")
 	);
-	$('#form_contain_embed').append(
+	$('#dataverse_contain_embed').append(
 	  $('<iframe/>')
 	);
-    $('#form_contain_embed iframe').attr('src', "<?=$bv->config->home_url?>question?embedded&questionnaire=<?=$_GET['id']?>&after=0");
-    $('#form_contain_embed iframe').on('load', function() {
-        $('#form_loader').fadeOut(function() {
-            $('#form_contain_embed').fadeIn();
-        });
-    });
+
+  $('#dataverse_contain_embed iframe').attr('src', "<?=$bv->config->home_url?>question?embedded&questionnaire=<?=$_GET['id']?>&step=1");
+  $('#dataverse_contain_embed iframe').on('load', function() {
+      $('#dataverse_loader').fadeOut(function() {
+          $('#dataverse_contain_embed').fadeIn();
+      });
+  });
+
+	return false;
 }
