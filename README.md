@@ -5,7 +5,7 @@ Dataverse is a user-friendly tool for creating conversational forms that can als
 
 ### How do I get set up? ###
 
-There's a Dockerfile to configure nginx and php-fpm together, and Composer. Database server is not included for flexibility (so you can choose to use SQLite, MySQL, or Postgres).
+There's a Dockerfile to configure nginx and php-fpm together, and Composer. Database server is not included for flexibility (so you can choose to use MariaDB, MySQL, or Postgres).
 
 Some variables can be set in Dockerfile, such as `ERRORS` to toggle error reporting: `ERRORS=1` will display PHP errors in the browser.
 
@@ -15,7 +15,7 @@ Your custom config directory (start by copying `config/secrets.sample.php` to th
 
   `docker build -t dataverse . && docker run -d -p 8080:80 --mount type=bind,source="/path/to/your/custom_directory",target=/home/app/custom dataverse`
 
-Once you're up and running, go to http://localhost/admin?token=123changeme to create your first questionnaire. 
+Once you're up and running, go to http://localhost/build?token=123changeme to create your first questionnaire.
 
 ### Without Docker ###
 
@@ -23,7 +23,7 @@ Once you're up and running, go to http://localhost/admin?token=123changeme to cr
 
 PHP 7.0+
 
-MySQL 5.6+ (or SQLite, or Postgres)
+MySQL 5.6+ (or MariaDB, or Postgres)
 
 PHP Extensions: pdo, xml, mbstring
 
@@ -31,7 +31,7 @@ PHP Extensions: pdo, xml, mbstring
 
 Run `composer install` to get PHP libraries / dependencies
 
-Import the MySQL DB dump (or just create a DB and the tables will be created for you)
+Import the SQL DB dump (or just create a DB and the tables will be created for you)
 
 Copy `config/secrets.sample.php` to `custom/secrets.php` and enter DB details, along with other options (such as Mandrill details for email notifications).
 
