@@ -590,6 +590,10 @@ $app->match('/question', function (Request $request) use ($app) {
     //			'label' => 'Continue',
     //		]);
 
+    if (isset($_GET['embedded'])) {
+        $output_after .= '<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/3.5.15/iframeResizer.contentWindow.min.js"></script>';
+    }
+
     $form = $form_builder->getForm();
     // error_log(print_r($form, true));
 
