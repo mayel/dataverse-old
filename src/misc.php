@@ -2,25 +2,28 @@
 
 use Mailgun\Mailgun;
 
-function get_include($file){
+function get_include($file)
+{
     ob_start();
     include($file);
     return ob_get_clean();
 }
 
-function email_send($msg="", $to="", $subject=false) {
-	global $bv;
+function email_send($msg="", $to="", $subject=false)
+{
+    global $bv;
 
-	# Instantiate the client.
-	$mgClient = new Mailgun($bv->config->mail->mailgun_key);
+    # Instantiate the client.
+    $mgClient = new Mailgun($bv->config->mail->mailgun_key);
 
-	# Make the call to the client.
-	return $mgClient->sendMessage($bv->config->mail->domain,
-			  array('from'	=> $bv->config->mail->from,
-					'to'	  => $to,
-					'subject' => $subject ? $subject : $bv->config->mail->subject_default,
-					'html'	=> $msg));
-
+    # Make the call to the client.
+    return $mgClient->sendMessage(
+        $bv->config->mail->domain,
+              array('from'	=> $bv->config->mail->from,
+                    'to'	  => $to,
+                    'subject' => $subject ? $subject : $bv->config->mail->subject_default,
+                    'html'	=> $msg)
+    );
 }
 
 
@@ -38,43 +41,54 @@ function email_send($msg="", $to="", $subject=false) {
  * @param bool $strict If set limits $username to specific characters. Default false.
  * @return string The sanitized username
  */
-function sanitize_user( $username, $no_spaces = true, $lower=false ) {
-	$username = strip_tags( $username );
-	if($lower) $username = strtolower( $username );
-	// Kill octets
-	$username = preg_replace( '|%([a-fA-F0-9][a-fA-F0-9])|', '', $username );
-	$username = preg_replace( '/&.+?;/', '', $username ); // Kill entities
+function sanitize_user($username, $no_spaces = true, $lower=false)
+{
+    $username = strip_tags($username);
+    if ($lower) {
+        $username = strtolower($username);
+    }
+    // Kill octets
+    $username = preg_replace('|%([a-fA-F0-9][a-fA-F0-9])|', '', $username);
+    $username = preg_replace('/&.+?;/', '', $username); // Kill entities
 
-	$username = str_replace('-', '_', $username );
+    $username = str_replace('-', '_', $username);
 
-	// reduce to ASCII subset for max portability.
-	$username = preg_replace( '|[^a-z0-9 _]|i', '', $username );
+    // reduce to ASCII subset for max portability.
+    $username = preg_replace('|[^a-z0-9 _]|i', '', $username);
 
-	// Consolidate contiguous whitespace
-	$username = preg_replace( '|\s+|', ($no_spaces? '_': ' '), $username );
-	if($no_spaces) $username = str_replace(' ', '_', $username );
+    // Consolidate contiguous whitespace
+    $username = preg_replace('|\s+|', ($no_spaces? '_': ' '), $username);
+    if ($no_spaces) {
+        $username = str_replace(' ', '_', $username);
+    }
 
-	$username = trim( $username, ' _' );
-	//echo $username;
+    $username = trim($username, ' _');
+    //echo $username;
 
-	return $username;
+    return $username;
 }
 
-function admin_auth($blocking = true, $token_type='admin_token'){
-	global $bv, $app;
+function admin_auth($blocking = true, $token_type='admin_token')
+{
+    global $bv, $app;
 
-	$bv->user_token = $_GET['token'] ? $_GET['token'] : $app['session']->get('user_token'); // get from session
+    $bv->user_token = $_GET['token'] ? $_GET['token'] : $app['session']->get('user_token'); // get from session
 
-	if($bv->user_token !=$bv->config->{$token_type}){
-    if($blocking) exit("Unauthorized!"); // no good
-    else return false;
-  }
+    if ($bv->user_token !=$bv->config->{$token_type}) {
+        if ($blocking) {
+            exit("Unauthorized!");
+        } // no good
+        else {
+            return false;
+        }
+    }
 
-	$app['session']->set('user_token', $bv->user_token); // OK, save as session
+    $app['session']->set('user_token', $bv->user_token); // OK, save as session
 
-  return true; // OK
+    return true; // OK
 }
 
-function member_auth($blocking = true){
-	return admin_auth($blocking, 'members_token');
+function member_auth($blocking = true)
+{
+    return admin_auth($blocking, 'members_token');
 }

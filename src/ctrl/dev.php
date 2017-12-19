@@ -43,109 +43,109 @@ $app['my.formFactory'] = Forms::createFormFactoryBuilder()
 // TEMP
 
 $app->get('/admin/test', function () use ($app) {
-	//return $app['twig']->render('index.html.twig', array());
-	// rewrite to somewhere else
-	$subRequest = Request::create('/test', 'GET');
-	return $app->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
+    //return $app['twig']->render('index.html.twig', array());
+    // rewrite to somewhere else
+    $subRequest = Request::create('/test', 'GET');
+    return $app->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
 })
 ;
 
 $app->match('/test', function (Request $request) use ($app) {
-	global $bv;
+    global $bv;
 
-	user_init();
-	//var_dump($bv->user);
+    user_init();
+    //var_dump($bv->user);
 
-	//user_create(null, 'test', 'mayel@deborniol.com');
+    //user_create(null, 'test', 'mayel@deborniol.com');
 
-	// some default data for when the form is displayed the first time
-//	$data = array(
-//		'name' => '',
-//		'email' => '',
-//	);
+    // some default data for when the form is displayed the first time
+    //	$data = array(
+    //		'name' => '',
+    //		'email' => '',
+    //	);
 
-	//$app['monolog']->debug('Testing the Monolog logging.'); 
+    //$app['monolog']->debug('Testing the Monolog logging.');
 
 
-	$needs = array('Medical', 'Legal', 'Transport', 'Food', 'Clothes', 'Hygiene');
-	$needs_choices = array_combine($needs, $needs);
+    $needs = array('Medical', 'Legal', 'Transport', 'Food', 'Clothes', 'Hygiene');
+    $needs_choices = array_combine($needs, $needs);
 
-	$places = array('Country', 'Camp', 'Dentention Center', 'Prison', 'Private House', 'Other', 'Will tell you later', 'GPS coordinates');
-	$places_choices = array_combine($places, $places);
+    $places = array('Country', 'Camp', 'Dentention Center', 'Prison', 'Private House', 'Other', 'Will tell you later', 'GPS coordinates');
+    $places_choices = array_combine($places, $places);
 
-	$form = $app['my.formFactory']->createBuilder(FormType::class, $data)
-		->add('type_need', ChoiceType::class, array(
-			'label' => "What kind of urgent need do you have?",
-			'choices' => $needs_choices,
-			'expanded' => true,
-		))
-		->add('name')
-		->add('age', IntegerType::class, array(
-			'scale' => 0,
-		))
-		->add('frequent_internet_access', ChoiceType::class, array(
-			'label' => "Do you have frequent access to internet?",
-			'choices' => array('Yes' => 1, 'No' => 0),
-			'expanded' => true,
-		))
-		->add('speaks_english', ChoiceType::class, array(
-			'label' => "Do you speak english?",
-			'choices' => array('Yes' => 1, 'No' => 0),
-			'expanded' => true,
-		))
-		->add('translator_needed', ChoiceType::class, array(
-			'label' => "Do you need a translator?",
-			'choices' => array('Yes' => 1, 'No' => 0),
-			'expanded' => true,
-		))
-		->add('language', ChoiceType::class, array(
-			'label' => "What language?",
-		))
-		->add('email', EmailType::class)
-		->add('phone')
-		->add('facebook')
-		->add('location')
-		->add('kind_of_place', ChoiceType::class, array(
-			'label' => "What kind of place?",
-			'choices' => $places_choices,
-			'expanded' => true,
-		))
-		->add('save', SubmitType::class, [
-			'label' => 'Save',
-		])
-		->getForm();
+    $form = $app['my.formFactory']->createBuilder(FormType::class, $data)
+        ->add('type_need', ChoiceType::class, array(
+            'label' => "What kind of urgent need do you have?",
+            'choices' => $needs_choices,
+            'expanded' => true,
+        ))
+        ->add('name')
+        ->add('age', IntegerType::class, array(
+            'scale' => 0,
+        ))
+        ->add('frequent_internet_access', ChoiceType::class, array(
+            'label' => "Do you have frequent access to internet?",
+            'choices' => array('Yes' => 1, 'No' => 0),
+            'expanded' => true,
+        ))
+        ->add('speaks_english', ChoiceType::class, array(
+            'label' => "Do you speak english?",
+            'choices' => array('Yes' => 1, 'No' => 0),
+            'expanded' => true,
+        ))
+        ->add('translator_needed', ChoiceType::class, array(
+            'label' => "Do you need a translator?",
+            'choices' => array('Yes' => 1, 'No' => 0),
+            'expanded' => true,
+        ))
+        ->add('language', ChoiceType::class, array(
+            'label' => "What language?",
+        ))
+        ->add('email', EmailType::class)
+        ->add('phone')
+        ->add('facebook')
+        ->add('location')
+        ->add('kind_of_place', ChoiceType::class, array(
+            'label' => "What kind of place?",
+            'choices' => $places_choices,
+            'expanded' => true,
+        ))
+        ->add('save', SubmitType::class, [
+            'label' => 'Save',
+        ])
+        ->getForm();
 
-	$form->handleRequest($request);
+    $form->handleRequest($request);
 
-	if ($form->isValid()) {
-		$data = $form->getData();
+    if ($form->isValid()) {
+        $data = $form->getData();
 
-		// do something with the data
-		//print_r($data);
+        // do something with the data
+        //print_r($data);
 
-		$bv->item = R::dispense( 'request' );
+        $bv->item = R::dispense('request');
 
-		$id = item_save('request', $data);
+        $id = item_save('request', $data);
 
 //
-//		foreach ($data as $key => $value) {
-//			$bv->item->$key = $value;
-//		}
-//		$id = R::store( $bv->item );
+        //		foreach ($data as $key => $value) {
+        //			$bv->item->$key = $value;
+        //		}
+        //		$id = R::store( $bv->item );
 
-		//print_r($id);
+        //print_r($id);
 
-		$show = $app['twig']->render('data.html.twig', array('data' => $bv->item, 'title' => $bv->page_title) );
+        $show = $app['twig']->render('data.html.twig', array('data' => $bv->item, 'title' => $bv->page_title));
 
 
-		//email_send($show);
+        //email_send($show);
 
-		return $show;
+        return $show;
 
-		// redirect somewhere
-		//return $app->redirect('/');
-	}
+        // redirect somewhere
+        //return $app->redirect('/');
+    }
 
-	// display the form
-	return $app['twig']->render('form.html.twig', array('form' => $form->createView(), 'output_code' => $output_code, 'title' => $bv->page_title));
+    // display the form
+    return $app['twig']->render('form.html.twig', array('form' => $form->createView(), 'output_code' => $output_code, 'title' => $bv->page_title));
 });

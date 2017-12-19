@@ -18,7 +18,11 @@ $app->register(new FormServiceProvider());
 $app->register(new TwigServiceProvider());
 
 use Symfony\Component\Form\FormRenderer;
-$app->extend('twig.runtimes', function ($array) { $array[FormRenderer::class] = 'twig.form.renderer'; return $array; });
+
+$app->extend('twig.runtimes', function ($array) {
+    $array[FormRenderer::class] = 'twig.form.renderer';
+    return $array;
+});
 
 $app->register(new HttpFragmentServiceProvider());
 

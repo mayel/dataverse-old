@@ -4,15 +4,14 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\User;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
+
 //use Doctrine\DBAL\Connection;
 
 class UserProvider implements UserProviderInterface
-{ 
-
+{
     public function loadUserByUsername($username)
     {
-
-         $user = R::findOne( 'user', ' username = ? ', array(strtolower($username)) );
+        $user = R::findOne('user', ' username = ? ', array(strtolower($username)));
 
         if (!$user) {
             throw new UsernameNotFoundException(sprintf('Username "%s" does not exist.', $username));

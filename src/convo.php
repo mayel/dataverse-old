@@ -1,487 +1,496 @@
 <?php
 
-function item_save($table_name = 'item', $data = [], $custom_linked_items=false) { // save object in DB, with support for many to many for items with array of data
-	global $bv;
+function item_save($table_name = 'item', $data = [], $custom_linked_items=false)
+{ // save object in DB, with support for many to many for items with array of data
+    global $bv;
 
-	// print_r($data);
+    // print_r($data);
 
-	if(!$bv->item) $bv->item = R::dispense( $table_name );
+    if (!$bv->item) {
+        $bv->item = R::dispense($table_name);
+    }
 
-	// if(!is_array($data)) $data = (array) $data; // make sure we are dealing with an array
-	// print_r($data);
-	// error_log($bv->item);
+    // if(!is_array($data)) $data = (array) $data; // make sure we are dealing with an array
+    // print_r($data);
+    // error_log($bv->item);
 
-	foreach ($data as $key => $value) {
-		// var_dump('item foreach', $key , $value, is_array($value));
+    foreach ($data as $key => $value) {
+        // var_dump('item foreach', $key , $value, is_array($value));
 
-		if(is_array($value)){ // multiple items - use linked table
-			// error_log('arr');
+        if (is_array($value)) { // multiple items - use linked table
+            // error_log('arr');
 
-			if(count($value)>0){
-				// error_log('>0');
-				if($custom_linked_items){ // we're already getting Redbean objects
+            if (count($value)>0) {
+                // error_log('>0');
+                if ($custom_linked_items) { // we're already getting Redbean objects
 
-					$linked_ref = 'shared'.ucwords($custom_linked_items).'List';
+                    $linked_ref = 'shared'.ucwords($custom_linked_items).'List';
 
-					$bv->item->{$linked_ref} = $value; // store relation
+                    $bv->item->{$linked_ref} = $value; // store relation
+                } else {
+                    $linked_ref = 'shared'.ucwords($key).'List';
 
+                    foreach ($value as $linked_value) { // sub-array
+                        if ($linked_value) {
+                            $linked_item = R::dispense($key); // init linked table
+                            $linked_item->$key = $linked_value;
+                            R::store($linked_item);
 
-				} else {
+                            $bv->item->{$linked_ref}[] = $linked_item; // store relation
+                        }
+                    }
+                }
+            }
+        } else {
+            $bv->item->$key = $value;
+        } // standard field
+    }
+    // error_log($bv->item);
 
-					$linked_ref = 'shared'.ucwords($key).'List';
-
-					foreach ($value as $linked_value) { // sub-array
-					if($linked_value){
-						$linked_item = R::dispense( $key ); // init linked table
-						$linked_item->$key = $linked_value;
-						R::store( $linked_item );
-
-						$bv->item->{$linked_ref}[] = $linked_item; // store relation
-					}}
-				}
-			}
-
-		}
-		else $bv->item->$key = $value; // standard field
-
-	}
-	// error_log($bv->item);
-
-	return R::store( $bv->item );
+    return R::store($bv->item);
 }
 
-function respondent_questions_responses_save($data, $col_prefix = "the") { // save object in DB, with support for many to many for items with array of data
-	global $bv;
+function respondent_questions_responses_save($data, $col_prefix = "the")
+{ // save object in DB, with support for many to many for items with array of data
+    global $bv;
 
-	//print_r([$bv->respondent, $bv->question, $data, $bv->response]);
+    //print_r([$bv->respondent, $bv->question, $data, $bv->response]);
 
-	//$bv->response = R::dispense( $bv->table_response ); // init response
+    //$bv->response = R::dispense( $bv->table_response ); // init response
 
-	foreach ($data as $key => $value) {
-		// var_dump($key , $value, $bv->questions_by_field[$key]->question_text);
+    foreach ($data as $key => $value) {
+        // var_dump($key , $value, $bv->questions_by_field[$key]->question_text);
 
-		if($bv->questions_by_field[$key]) $bv->question = $bv->questions_by_field[$key]; // to handle multiple questions on one screen
+        if ($bv->questions_by_field[$key]) {
+            $bv->question = $bv->questions_by_field[$key];
+        } // to handle multiple questions on one screen
 
-		// return
-			respondent_question_responses_save($key, $value, $data, $col_prefix = "the");
-
-	}
-	// exit();
+        // return
+        respondent_question_responses_save($key, $value, $data, $col_prefix = "the");
+    }
+    // exit();
 }
 
-function respondent_question_responses_save($key, $value, $data, $col_prefix = "the") { // save object in DB, with support for many to many for items with array of data
-	global $bv;
+function respondent_question_responses_save($key, $value, $data, $col_prefix = "the")
+{ // save object in DB, with support for many to many for items with array of data
+    global $bv;
 
-	$bv->field_name = ($bv->question->question_name ? $bv->question->question_name : $bv->question->id);
-	$bv->answer_type = ($bv->question->answer_type);
+    $bv->field_name = ($bv->question->question_name ? $bv->question->question_name : $bv->question->id);
+    $bv->answer_type = ($bv->question->answer_type);
 
-	if($bv->answer_type=='Sortable'){ // special case when dealing with an ajax list-sorting
-		$ord=0;
+    if ($bv->answer_type=='Sortable') { // special case when dealing with an ajax list-sorting
+        $ord=0;
 
-		if(is_array($value)){
-			foreach ($value as $so) {
-				//print_r($so);
-				if($so->id){
+        if (is_array($value)) {
+            foreach ($value as $so) {
+                //print_r($so);
+                if ($so->id) {
+                    $answer = answer_prepare($so->id, true);
 
-					$answer = answer_prepare($so->id, true);
+                    if ($answer) {
+                        if ($ord>0) {
+                            unset($bv->response);
+                        }  // create an additional response row
 
-					if($answer){
+                        $respond[$col_prefix.'Num'] = $ord;
 
-						if($ord>0) unset( $bv->response );  // create an additional response row
+                        $response_ids[] = answer_response_save($answer, $respond);
 
-						$respond[$col_prefix.'Num'] = $ord;
+                        $ord++;
+                    }
+                }
+            }
+            exit('sorted '.$ord);
+        } else {
+            return true;
+        }
+    } elseif ($key == $bv->field_name) { // dealing with the response to current question
 
-						$response_ids[] = answer_response_save( $answer, $respond );
+        // defaults:
+        $try_by_id=false;
+        unset($col_name);
 
-						$ord++;
-					}
-				}
-			}
-			exit('sorted '.$ord);
-		} else {
-			return true;
-		}
-	} elseif($key == $bv->field_name){ // dealing with the response to current question
+        if ($value) {
+            if (in_array($bv->answer_type, ['UploadImage','UploadDoc','UploadFile'])) {
+                $dir = __DIR__.'/../web/uploads';
+                $file = $value;
 
-		// defaults:
-		$try_by_id=false;
-		unset($col_name);
+                // compute a random name and try to guess the extension (more secure)
+                $extension = $file->guessExtension();
+                if (!$extension) {
+                    // extension cannot be guessed
+                    $extension = 'bin';
+                }
 
-		if($value){
+                $filename = $bv->respondent->id.'_'.rand(1, 99999).'.'.$extension;
 
-			if(in_array($bv->answer_type, ['UploadImage','UploadDoc','UploadFile'])){
+                $file->move($dir, $filename);
 
-				$dir = __DIR__.'/../web/uploads';
-				$file = $value;
+                $value = $filename;
+                $col_name = 'Var';
+            } elseif ($bv->answer_type=='Email') { // save email in main 'respondent' table
+                $bv->respondent->email = $value;
+                R::store($bv->respondent);
+                $col_name = 'Var';
+            } elseif ($bv->answer_type=='MapLocation') {
+                $col_name = 'Point';
+                $geo_col = $bv->table_response.'.'.$col_prefix.'_'.'point';
+                R::bindFunc('read', $geo_col, 'asText');
+                R::bindFunc('write', $geo_col, 'GeomFromText');
+                $point_num = str_replace(',', ' ', $value);
+                $value = "POINT($point_num)";
+            } elseif ($bv->answer_type=='Currency') {
+                currency_set($value); // save selected currency in session
+            } elseif (in_array($bv->answer_type, ['MultipleChoices','Choice','Dropdown'])) { // form can submit IDs of answers rather than contents
+                $try_by_id=true;
+            } elseif ($value instanceof DateTime) { // Date, DateTime, or Time
+                $date = $value->format('Y-m-d');
+                $time = $value->format('H:i:s');
+                if ($date=='1970-01-01') {
+                    $col_name = 'Time';
+                    $value = $time;
+                } elseif ($time=='00:00:00') {
+                    $col_name = 'Date';
+                    $value = $date;
+                } else {
+                    $col_name = 'DateTime';
+                    $value = $value->format('Y-m-d H:i:s');
+                }
+            } elseif (in_array($bv->answer_type, ['Phone','LongText'])) {
+                $col_name = 'Var';
+            } elseif ($bv->answer_type=='Password') {
+                $col_name = 'Var';
+                // TODO
+            } elseif (is_numeric($value)) {
+                $col_name = 'Num';
+            }
 
-				// compute a random name and try to guess the extension (more secure)
-				$extension = $file->guessExtension();
-				if (!$extension) {
-				    // extension cannot be guessed
-				    $extension = 'bin';
-				}
+            if ($col_name && $col_prefix) {
+                $col_name = $col_prefix.$col_name;
+            }
 
-				$filename = $bv->respondent->id.'_'.rand(1, 99999).'.'.$extension;
+            // var_dump("<p>", $col_name, $bv->answer_type, $try_by_id);
 
-				$file->move($dir, $filename);
+            if ($bv->answer_type=='Price') { // both number & currency
 
-				$value = $filename;
-				$col_name = 'Var';
+                currency_get(); // load existing cookie
+                currency_set($data['currency']); // set new cookie if selected
 
-			} elseif($bv->answer_type=='Email'){ // save email in main 'respondent' table
-				$bv->respondent->email = $value;
-				R::store( $bv->respondent );
-				$col_name = 'Var';
-			}
-			elseif($bv->answer_type=='MapLocation'){
-				$col_name = 'Point';
-				$geo_col = $bv->table_response.'.'.$col_prefix.'_'.'point';
-				R::bindFunc( 'read', $geo_col, 'asText' );
-				R::bindFunc( 'write', $geo_col, 'GeomFromText' );
-				$point_num = str_replace(',', ' ', $value);
-				$value = "POINT($point_num)";
-			}
-			elseif($bv->answer_type=='Currency'){
-				currency_set($value); // save selected currency in session
-			}
-			elseif(in_array($bv->answer_type, ['MultipleChoices','Choice','Dropdown'])){ // form can submit IDs of answers rather than contents
-				$try_by_id=true;
-			}
-			elseif ($value instanceof DateTime) { // Date, DateTime, or Time
-			  $date = $value->format('Y-m-d');
-			  $time = $value->format('H:i:s');
-			  if($date=='1970-01-01'){
-			  	$col_name = 'Time';
-			  	$value = $time;
-			  } elseif($time=='00:00:00'){
-			  	$col_name = 'Date';
-			  	$value = $date;
-			  } else {
-				$col_name = 'DateTime';
-			  	$value = $value->format('Y-m-d H:i:s');
-			  }
-			} elseif(in_array($bv->answer_type, ['Phone','LongText'])){
-				$col_name = 'Var';
-			} elseif($bv->answer_type=='Password'){
-				$col_name = 'Var';
-				// TODO
-			} elseif(is_numeric($value)){
-				$col_name = 'Num';
-			}
+                $respond[$col_name] = $value; // Price amount
 
-			if($col_name && $col_prefix) $col_name = $col_prefix.$col_name;
+                $answer = answer_prepare($bv->currency); // get currency ID
 
-			// var_dump("<p>", $col_name, $bv->answer_type, $try_by_id);
+                $response_ids[] = answer_response_save($answer, $respond); // save Price & currency ID
 
-			if($bv->answer_type=='Price'){ // both number & currency
+                response_save_custom($value); // amount
+                response_save_custom($bv->currency, 'currency'); // currency code
+            } elseif ($col_name && !$try_by_id) { // simply store in appropriate column of response table
 
-				currency_get(); // load existing cookie
-				currency_set($data['currency']); // set new cookie if selected
+                $respond[$col_name] = $value; // store
 
-				$respond[$col_name] = $value; // Price amount
+                $response_ids[] = response_save($respond);
 
-				$answer = answer_prepare($bv->currency); // get currency ID
+                response_save_custom($value);
+            } elseif (is_array($value)) { // store (multiple answers) in answer table
 
-				$response_ids[] = answer_response_save( $answer, $respond ); // save Price & currency ID
+                $try_by_id=true;
+                $multii=0;
 
-				response_save_custom($value); // amount
-				response_save_custom($bv->currency, 'currency'); // currency code
+                foreach ($value as $linked_value) {
+                    if ($linked_value) {
+                        $answer = answer_prepare($linked_value, $try_by_id);
 
-			} elseif($col_name && !$try_by_id){ // simply store in appropriate column of response table
+                        if ($answer) {
+                            if ($multii>0) {
+                                unset($bv->response);
+                            }  // so an additional response row gets created
 
-				$respond[$col_name] = $value; // store
+                            $response_ids[] = answer_response_save($answer);
 
-				$response_ids[] = response_save($respond);
+                            $answers[] = $answer;
 
-				response_save_custom($value);
+                            $multii++;
+                        }
+                    }
+                }
 
+                response_save_custom($answers);
+            } else { // store (single answer) in answer table
 
-			} elseif(is_array($value)) { // store (multiple answers) in answer table
+                if ($value) {
+                    $answer = answer_prepare($value, $try_by_id);
+                }
 
-				$try_by_id=true;
-				$multii=0;
+                if ($answer) {
+                    $response_ids[] = answer_response_save($answer);
+                    response_save_custom($answer);
+                }
+            }
+        } // end if value
+    } elseif ($bv->answer_type=='Price' && $key=='currency') {
 
-				foreach ($value as $linked_value) {
+        // already dealt with above
+    } elseif ($value) { // other regular field
 
-					if($linked_value){
+        $respond[$key] = $value; // store
+        $response_ids[] = response_save($respond);
+        //response_save_custom($value);
+    }
 
-						$answer = answer_prepare($linked_value, $try_by_id);
-
-						if($answer){
-
-							if($multii>0) unset($bv->response);  // so an additional response row gets created
-
-							$response_ids[] = answer_response_save( $answer );
-
-							$answers[] = $answer;
-
-							$multii++;
-						}
-					}
-				}
-
-				response_save_custom($answers);
-
-
-			} else { // store (single answer) in answer table
-
-				if($value) $answer = answer_prepare($value, $try_by_id);
-
-				if($answer){
-					$response_ids[] = answer_response_save( $answer );
-					response_save_custom($answer);
-				}
-			}
-
-		} // end if value
-
-	} elseif($bv->answer_type=='Price' && $key=='currency'){
-
-		// already dealt with above
-
-	} elseif($value) { // other regular field
-
-		$respond[$key] = $value; // store
-		$response_ids[] = response_save($respond);
-		//response_save_custom($value);
-	}
-
-	// exit();
-	return $response_ids;
+    // exit();
+    return $response_ids;
 }
 
 
-function answer_prepare($value, $try_by_id=false) {
-	global $bv;
+function answer_prepare($value, $try_by_id=false)
+{
+    global $bv;
 
-	if($try_by_id) $answer = answer_get($value); // find pre-existing answer by ID
+    if ($try_by_id) {
+        $answer = answer_get($value);
+    } // find pre-existing answer by ID
 
-	if(!$answer->id){
+    if (!$answer->id) {
+        $answer = answer_find($value); // find pre-existing answer by content
 
-		$answer = answer_find($value); // find pre-existing answer by content
+        //print_r($value, $answer);
 
-		//print_r($value, $answer);
+        if (!$answer->id) { // create new answer
 
-		if(!$answer->id){ // create new answer
+            $answer = R::dispense('answer');
 
-			$answer = R::dispense( 'answer' );
+            $answer->answer = $value;
+            $answer->ts_added = R::isoDateTime();
+            if ($bv->respondent) {
+                $answer->by_respondent = $bv->respondent;
+            }
 
-			$answer->answer = $value;
-			$answer->ts_added = R::isoDateTime();
-			if($bv->respondent) $answer->by_respondent = $bv->respondent;
+            R::store($answer);
+        }
+    }
 
-			R::store( $answer );
-		}
-	}
-
-	return $answer;
+    return $answer;
 }
 
 
-function answer_response_save( $answer, $respond=[] ) {
-	global $bv;
+function answer_response_save($answer, $respond=[])
+{
+    global $bv;
 
-	$respond['answer'] = $answer; // store relation
+    $respond['answer'] = $answer; // store relation
 
-	return response_save($respond);
+    return response_save($respond);
 }
 
-function response_save($respond) {
-	global $bv;
+function response_save($respond)
+{
+    global $bv;
 
-	try {
+    try {
+        if ($respond['answer']) { // let's modify a past answer
 
-		if($respond['answer']){ // let's modify a past answer
+            error_log("let's modify past answer: ".$respond['answer']->id);
 
-			error_log("let's modify past answer: ".$respond['answer']->id);
-
-			$find = [ 'respondent_id' => $bv->respondent->id, 'question_id' => $bv->question->id, 'answer_id' => $respond['answer']->id ];
-			$bv->response = R::findOrCreate($bv->table_response, $find);
-
-		} else {
-
-			$bv->response = R::dispense( $bv->table_response ); // init new response
-		}
+            $find = [ 'respondent_id' => $bv->respondent->id, 'question_id' => $bv->question->id, 'answer_id' => $respond['answer']->id ];
+            $bv->response = R::findOrCreate($bv->table_response, $find);
+        } else {
+            $bv->response = R::dispense($bv->table_response); // init new response
+        }
 
 
-		//var_dump($respond, $find, $bv->response); exit();
+        //var_dump($respond, $find, $bv->response); exit();
 
-		$bv->response->respondent = $bv->respondent; // ownership
-		$bv->response->question = $bv->question; // link to question
+        $bv->response->respondent = $bv->respondent; // ownership
+        $bv->response->question = $bv->question; // link to question
 
-		$bv->response->response_ts = R::isoDateTime();
+        $bv->response->response_ts = R::isoDateTime();
 
-		$bv->response->import( $respond );
+        $bv->response->import($respond);
 
-		//$bv->response->setMeta("buildcommand.unique", array(array('respondent', 'question', 'answer')));
+        //$bv->response->setMeta("buildcommand.unique", array(array('respondent', 'question', 'answer')));
 
-		$id = R::store( $bv->response ); // save
+        $id = R::store($bv->response); // save
 
-		unset($bv->response);
-		//exit($id);
-		return $id;
-
-	} catch(Exception $e) {
-
-	    error_log("Could not save a response (probably duplicate)");
-	    // TODO
-
-	}
+        unset($bv->response);
+        //exit($id);
+        return $id;
+    } catch (Exception $e) {
+        error_log("Could not save a response (probably duplicate)");
+        // TODO
+    }
 }
 
-function response_save_custom($data, $custom_field_name=false) {
-	global $bv;
+function response_save_custom($data, $custom_field_name=false)
+{
+    global $bv;
 
-	try {
+    try {
+        return; // TODO! need to figure out respondent as unique ID
 
-		return; // TODO! need to figure out respondent as unique ID
+        if ($data && $bv->questionnaire->questionnaire_name && ($custom_field_name || $bv->field_name)) { // also save to dedicated table for current questionnaire
 
-		if($data && $bv->questionnaire->questionnaire_name && ($custom_field_name || $bv->field_name)){ // also save to dedicated table for current questionnaire
+            $bv->item = data_by_respondent($bv->questionnaire->questionnaire_name, $bv->respondent->id);
+            //var_dump($bv->item);
 
-			$bv->item = data_by_respondent($bv->questionnaire->questionnaire_name, $bv->respondent->id);
-			//var_dump($bv->item);
+            //			$find_t = [ 'respondent' => $bv->respondent ];
+            //			$bv->item = R::findOrCreate($bv->questionnaire->questionnaire_name, $find_t);
 
-//			$find_t = [ 'respondent' => $bv->respondent ];
-//			$bv->item = R::findOrCreate($bv->questionnaire->questionnaire_name, $find_t);
+            $data_a[($custom_field_name ? $custom_field_name : $bv->field_name)] = $data;
+            $data_a['respondent'] = $bv->respondent;
+            $data_a['updated_ts'] = $bv->response->response_ts;
 
-			$data_a[($custom_field_name ? $custom_field_name : $bv->field_name)] = $data;
-			$data_a['respondent'] = $bv->respondent;
-			$data_a['updated_ts'] = $bv->response->response_ts;
+            return item_save($bv->questionnaire->questionnaire_name, $data_a, 'answer');
+        }
 
-			return item_save($bv->questionnaire->questionnaire_name, $data_a, 'answer');
-		}
-
-		//exit($id);
-		return $id;
-
-	} catch(Exception $e) {
-
-	    error_log("Could not save a response to custom table (probably duplicate)");
-	    // TODO
-
-	}
+        //exit($id);
+        return $id;
+    } catch (Exception $e) {
+        error_log("Could not save a response to custom table (probably duplicate)");
+        // TODO
+    }
 }
 
 
-function currency_get() {
-	global $app, $bv;
-	$bv->currency = $app['session']->get('currency');
-	return $bv->currency;
+function currency_get()
+{
+    global $app, $bv;
+    $bv->currency = $app['session']->get('currency');
+    return $bv->currency;
 }
 
-function currency_set($currency) {
-	global $app, $bv;
-	if($currency){
-		$bv->currency = $currency;
-		$app['session']->set('currency', $currency); // save
-	}
+function currency_set($currency)
+{
+    global $app, $bv;
+    if ($currency) {
+        $bv->currency = $currency;
+        $app['session']->set('currency', $currency); // save
+    }
 }
 
-function data_by_id($table, $id) {
-	return R::load( $table, $id );
+function data_by_id($table, $id)
+{
+    return R::load($table, $id);
 }
 
-function questionnaires() {
-	return R::find( 'questionnaire');
+function questionnaires()
+{
+    return R::find('questionnaire');
 }
 
-function questionnaire_get($id) {
-	return data_by_id( 'questionnaire', $id );
+function questionnaire_get($id)
+{
+    return data_by_id('questionnaire', $id);
 }
 
-function questionnaire_questions($id) {
-	return R::find( 'question', ' questionnaire_id = ? ORDER BY id ASC ', [ $id ]  );
+function questionnaire_questions($id)
+{
+    return R::find('question', ' questionnaire_id = ? ORDER BY id ASC ', [ $id ]);
 }
 
-function question_get($id) {
-	return data_by_id( 'question', $id );
+function question_get($id)
+{
+    return data_by_id('question', $id);
 }
 
-function respondent_get($id) {
-	global $bv;
-	return data_by_id( $bv->table_respondent, $id );
+function respondent_get($id)
+{
+    global $bv;
+    return data_by_id($bv->table_respondent, $id);
 }
 
-function respondent_find($val, $field='email') {
-	global $bv;
-	return R::findOne( $bv->table_respondent, $field.' = ? ', [ $val ]  );
+function respondent_find($val, $field='email')
+{
+    global $bv;
+    return R::findOne($bv->table_respondent, $field.' = ? ', [ $val ]);
 }
 
-function answer_get($id) {
-	return data_by_id( 'answer', $id );
+function answer_get($id)
+{
+    return data_by_id('answer', $id);
 }
 
-function answer_find($value) {
-	return R::findOne( 'answer', ' answer LIKE ? ', [ $value ]  );
+function answer_find($value)
+{
+    return R::findOne('answer', ' answer LIKE ? ', [ $value ]);
 }
 
-function data_by_respondent($table, $respondent_id) {
-	return R::findOne( $table, ' respondent_id = ? ORDER BY response_ts DESC ', [ $respondent_id ]  );
+function data_by_respondent($table, $respondent_id)
+{
+    return R::findOne($table, ' respondent_id = ? ORDER BY response_ts DESC ', [ $respondent_id ]);
 }
 
-function response_by_question_id($question_id, $respondent_id) {
-	global $bv;
+function response_by_question_id($question_id, $respondent_id)
+{
+    global $bv;
 
-	return R::findOne( $bv->table_response, ' question_id = ? AND  respondent_id = ? ORDER BY response_ts DESC ', [ $question_id, $respondent_id ]  );
-}
-
-
-function respondents_by_status($status) {
-	global $bv;
-	return R::find( $bv->table_respondent, ' status = ? ', [ $status ]  );
-}
-
-function a_respondent_by_status($status) {
-	global $bv;
-	return R::findOne( $bv->table_respondent, ' status = ? ', [ $status ]  );
+    return R::findOne($bv->table_response, ' question_id = ? AND  respondent_id = ? ORDER BY response_ts DESC ', [ $question_id, $respondent_id ]);
 }
 
 
-function question_delete($id) {
-	if($id && ($item = R::load( 'question', $id ))){
-		$items = steps_by_question_id( $id );
-		R::trash( $item );
-		if($items) R::trashAll( $items );
-	}
+function respondents_by_status($status)
+{
+    global $bv;
+    return R::find($bv->table_respondent, ' status = ? ', [ $status ]);
 }
 
-function questionnaire_steps($id) {
-	return R::find( 'step', ' questionnaire_id = ? ORDER BY step ASC, `order` ASC ', [ $id ]  );
+function a_respondent_by_status($status)
+{
+    global $bv;
+    return R::findOne($bv->table_respondent, ' status = ? ', [ $status ]);
 }
 
-function step_get($id) {
-	return data_by_id( 'step', $id );
+
+function question_delete($id)
+{
+    if ($id && ($item = R::load('question', $id))) {
+        $items = steps_by_question_id($id);
+        R::trash($item);
+        if ($items) {
+            R::trashAll($items);
+        }
+    }
 }
 
-function steps_by_question_id($id) {
-	return R::find( 'step', ' question_id = ? ', [ $id ]  );
+function questionnaire_steps($id)
+{
+    return R::find('step', ' questionnaire_id = ? ORDER BY step ASC, `order` ASC ', [ $id ]);
 }
 
-function steps_reset($questionnaire_id) {
-	$steps= R::find( 'step', ' questionnaire_id = ?', [ $questionnaire_id ]  );
-	R::trashAll( $steps );
+function step_get($id)
+{
+    return data_by_id('step', $id);
 }
 
-function question_order_save($question_id, $step_num=1, $step_order=null){
-	global $bv;
+function steps_by_question_id($id)
+{
+    return R::find('step', ' question_id = ? ', [ $id ]);
+}
 
-	// error_log("question_order");
-	// error_log($question_id);
-	// error_log($step_num);
-	// error_log($step_order);
-	// error_log($bv->questionnaire->id);
+function steps_reset($questionnaire_id)
+{
+    $steps= R::find('step', ' questionnaire_id = ?', [ $questionnaire_id ]);
+    R::trashAll($steps);
+}
 
-	if($question_id && $bv->questionnaire->id){
+function question_order_save($question_id, $step_num=1, $step_order=null)
+{
+    global $bv;
 
-		$step = R::dispense( 'step' );
-		error_log($step);
+    // error_log("question_order");
+    // error_log($question_id);
+    // error_log($step_num);
+    // error_log($step_order);
+    // error_log($bv->questionnaire->id);
 
-		$step->question_id = $question_id;
-		$step->questionnaire_id = $bv->questionnaire->id;
-		$step->step = $step_num;
-		$step->order = $step_order;
+    if ($question_id && $bv->questionnaire->id) {
+        $step = R::dispense('step');
+        error_log($step);
 
-		R::store( $step );
+        $step->question_id = $question_id;
+        $step->questionnaire_id = $bv->questionnaire->id;
+        $step->step = $step_num;
+        $step->order = $step_order;
 
-	}
+        R::store($step);
+    }
 }

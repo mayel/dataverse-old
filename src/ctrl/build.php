@@ -87,14 +87,11 @@ $app->match('/build/questionnaire', function (Request $request) use ($app) {
             'disabled'=> true
         ]);
 
-
         $output_code .= '
 	<p>
 	<a href="/build/question" id="skip" class="btn-sm btn btn-info float-right">Add Question</a>
 	<label class="font-weight-bold">Questions</label>
 	';
-
-
 
         $sortable->links->step = '/question?step=';
         $sortable->links->edit = '/build/question?id=';

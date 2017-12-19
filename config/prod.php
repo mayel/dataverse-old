@@ -1,7 +1,9 @@
 <?php
 global $bv;
 
-if(!$bv->base_path) $bv->base_path = (dirname(dirname(__FILE__))).'/';
+if (!$bv->base_path) {
+    $bv->base_path = (dirname(dirname(__FILE__))).'/';
+}
 
 // configure your app for the production environment
 
