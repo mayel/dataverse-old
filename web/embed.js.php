@@ -8,7 +8,7 @@ function dataverse_open_form() {
 
 	$('<link>').attr('rel','stylesheet')
 	  .attr('type','text/css')
-	  .attr('href',"<?=$bv->config->home_url?>css/embed.css?v2")
+	  .attr('href',"<?=$bv->config->home_url?>css/embed.css?v2.1")
 	  .appendTo('head');
 
 	$('body').append(
