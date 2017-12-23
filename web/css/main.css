@@ -3,7 +3,10 @@ html, body, .contain-all {
 }
 
 body {
-	font-size:1.2rem;
+	font-size:1.1rem;
+}
+p {
+	font-size:1rem;
 }
 
 .table {
