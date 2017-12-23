@@ -1,13 +1,8 @@
 {% extends "layout.html.twig" %}
 
-{% form_theme form with ['bootstrap_4_layout.html.twig', _self] %}
-{% block title %}{{title}}{% endblock %}
+{% form_theme form with ['dataverse_form_theme.html.twig', _self] %}
 
-{% block customcode_widget %}
-    <div class="customcode_widget">
-			{% if attr.html %}{{ attr.html|raw }}{% endif %}
-    </div>
-{% endblock %}
+{% block title %}{{title}}{% endblock %}
 
 {% block content %}
 

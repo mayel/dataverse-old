@@ -193,7 +193,7 @@ $app->match('/question', function (Request $request) use ($app) {
 
         $attr = array('class' => ' fieldtype-'.$bv->question->answer_type. ' field-'.$bv->field_name);
 
-        $attr['help'] = $bv->question->question_note;
+        $attr['data-help'] = $help = $bv->question->question_note;
 
         if ($bv->respondent_id) {
             $r = response_by_question_id($bv->question_id, $bv->respondent_id);
@@ -293,6 +293,7 @@ $app->match('/question', function (Request $request) use ($app) {
                 $form_builder->add($bv->field_name, IntegerType::class, array(
                     'label' => $bv->field_label,
                     'scale' => 0,
+                    // 'help'	  => $help,
                     'attr'	  => $attr
                 ));
 

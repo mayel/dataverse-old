@@ -11,15 +11,20 @@ body {
 }
 
 .form-group{
-	margin-top: 1rem;
+	margin-top: 0.5rem;
+	margin-top: 1.5rem;
 }
 
 .form-control-label, .col-form-legend{
 	width: 100%;
 	font-weight: bold;
 	font-size:1.2rem;
+	margin-bottom: .25rem;
 }
-
+.form-text{
+	margin-top: 0;
+	margin-bottom: .25rem;
+}
 .form-control, .select2-container, .select2-selection {
 	line-height: 150%;
 	font-size: 0.9rem;
@@ -42,7 +47,6 @@ input[type=radio], input[type=checkbox] {
 #form input.form-control, #form textarea {
 	padding: .45rem .9rem;
 	width: 100%;
-	line-height: 160%;
 	border: 2px dashed #ddd !important;
 }
 
