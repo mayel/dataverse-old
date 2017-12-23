@@ -2,10 +2,7 @@ html, body, .contain-all {
     height: 100%;
 }
 
-body {
-	font-size:1.1rem;
-}
-p {
+body, p {
 	font-size:1rem;
 }
 
@@ -14,14 +11,14 @@ p {
 }
 
 .form-group{
-	margin-top: 0.5rem;
+	margin-bottom: 1rem;
 	margin-top: 1.5rem;
 }
 
 .form-control-label, .col-form-legend{
 	width: 100%;
 	font-weight: bold;
-	font-size:1.2rem;
+	font-size:1.15rem;
 	margin-bottom: .25rem;
 }
 .form-text{
