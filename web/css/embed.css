@@ -42,7 +42,7 @@
 }
 
 #dataverse_contain #dataverse_loader {
-	background: url('/images/loading-big.gif');
+	background: url('/images/loading-big.svg');
 	background-repeat: no-repeat;
 	width: 105px;
 	height: 105px;
