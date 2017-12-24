@@ -45,8 +45,14 @@ $app['my.formFactory'] = Forms::createFormFactoryBuilder()
 
 use Mayel\FormExtrasBundle\Form\Type\CustomcodeType;
 
+function field_params($params=[])
+{
+    global $field_params;
+    return array_merge($field_params, $params);
+}
+
 $app->match('/question', function (Request $request) use ($app) {
-    global $bv;
+    global $bv, $field_params;
 
     // some default data for when the form is displayed the first time
     $data = array(
@@ -218,106 +224,108 @@ $app->match('/question', function (Request $request) use ($app) {
 
         $attr['value'] = $prev_response ? $prev_response : $bv->question->question_default_answer;
 
+        $field_params = [];
+
         switch ($bv->question->answer_type) {
             case "LongText":
 
                 $attr['rows'] = '4';
 
-                $form_builder->add($bv->field_name, TextareaType::class, array(
+                $form_builder->add($bv->field_name, TextareaType::class, field_params([
                     'label' => $bv->field_label,
                     'attr'	  => $attr
-                ));
+                ]));
 
                 break;
             case "Email":
 
-                $form_builder->add($bv->field_name, EmailType::class, array(
+                $form_builder->add($bv->field_name, EmailType::class, field_params([
                     'label' => $bv->field_label,
                     'attr'	  => $attr,
                     'constraints' => array(new Assert\Email(array(
                         'message' => 'The email {{ value }} is not a valid email.',
                         'checkMX' => true,
                     )))
-                ));
+                ]));
 
                 break;
             case "Date":
 
                 $attr['style'] = 'max-width:240px';
 
-                $form_builder->add($bv->field_name, DateType::class, array(
+                $form_builder->add($bv->field_name, DateType::class, field_params([
                     'label' => $bv->field_label,
                     'attr'	  => $attr,
                     'widget' => 'single_text',
-                ));
+                ]));
 
                 break;
             case "Time":
 
                 $attr['style'] = 'max-width:140px';
 
-                $form_builder->add($bv->field_name, TimeType::class, array(
+                $form_builder->add($bv->field_name, TimeType::class, field_params([
                     'label' => $bv->field_label,
                     'attr'	  => $attr,
                     'widget' => 'single_text',
-                ));
+                ]));
 
                 break;
             case "DateTime":
 
                 //$attr['style'] = 'width:50%';
 
-                $form_builder->add($bv->field_name, DateTimeType::class, array(
+                $form_builder->add($bv->field_name, DateTimeType::class, field_params([
                     'label' => $bv->field_label,
                     'attr'	  => $attr,
                     'date_widget' => 'single_text',
                     'time_widget' => 'single_text',
-                ));
+                ]));
 
                 break;
             case "Birthday":
 
                 $attr['style'] = 'max-width:240px';
 
-                $form_builder->add($bv->field_name, BirthdayType::class, array(
+                $form_builder->add($bv->field_name, BirthdayType::class, field_params([
                     'label' => $bv->field_label,
                     'attr'	  => $attr,
                     'widget' => 'single_text',
-                ));
+                ]));
 
                 break;
             case "NumberInteger":
 
                 $attr['style'] = 'max-width:200px';
 
-                $form_builder->add($bv->field_name, IntegerType::class, array(
+                $form_builder->add($bv->field_name, IntegerType::class, field_params([
                     'label' => $bv->field_label,
                     'scale' => 0,
                     // 'help'	  => $help,
                     'attr'	  => $attr
-                ));
+                ]));
 
                 break;
             case "Number":
 
                 $attr['style'] = 'max-width:200px';
 
-                $form_builder->add($bv->field_name, NumberType::class, array(
+                $form_builder->add($bv->field_name, NumberType::class, field_params([
                     'label' => $bv->field_label,
                     //'scale' => 0,
                     'attr'	  => $attr
-                ));
+                ]));
 
                 break;
             case "Percentage":
 
                 $attr['style'] = 'max-width:100px';
 
-                $form_builder->add($bv->field_name, PercentType::class, array(
+                $form_builder->add($bv->field_name, PercentType::class, field_params([
                     'label' => $bv->field_label,
                     //'scale' => 0,
                     'attr'	  => $attr
-                ));
+                ]));
 
                 break;
             case "Phone":
@@ -327,12 +335,12 @@ $app->match('/question', function (Request $request) use ($app) {
 
                 //$attr['class'] .= ' ';
 
-                $form_builder->add($bv->field_name, TextType::class, array(
+                $form_builder->add($bv->field_name, TextType::class, field_params([
                     'label' => $bv->field_label,
                     //'choice_value' => '',
                     //'placeholder' => '+1 555 123 4567',
                     'attr'	  => $attr
-                ));
+                ]));
 
                 break;
             case "Currency":
@@ -354,13 +362,13 @@ $app->match('/question', function (Request $request) use ($app) {
                     $bv->currency = $attr['value'];
                 }
 
-                $form_builder->add($bv->field_name, CurrencyType::class, array(
+                $form_builder->add($bv->field_name, CurrencyType::class, field_params([
                     'label' => $bv->field_label,
                     'placeholder' => 'Select a currency',
                     'attr'	  => $attr,
                     'data'	  => $bv->currency,
                     'choices'	  => $choices,
-            ));
+            ]));
 
                 break;
             case "Price":
@@ -375,57 +383,57 @@ $app->match('/question', function (Request $request) use ($app) {
                 //if($currency) $param['currency'] = $bv->currency;
                 //$form_builder->add($bv->field_name, MoneyType::class, $param);
 
-                $form_builder->add($bv->field_name, NumberType::class, $param);
+                $form_builder->add($bv->field_name, NumberType::class, field_params([$param]));
 
                 $attr['class'] .= ' select2';
 
-                $form_builder->add('currency', CurrencyType::class, array(
+                $form_builder->add('currency', CurrencyType::class, field_params([
                     'label' => 'In what currency?',
                     'placeholder' => 'Select a currency',
                     'attr'	  => $attr,
                     'data'	  => $bv->currency,
-                ));
+                ]));
 
                 break;
             case "Country":
 
                 $attr['class'] .= ' select2';
 
-                $form_builder->add($bv->field_name, CountryType::class, array(
+                $form_builder->add($bv->field_name, CountryType::class, field_params([
                     'label' => $bv->field_label,
                     //'choice_value' => '',
                     'placeholder' => 'Select a country',
                     'attr'	  => $attr
-                ));
+                ]));
 
                 break;
             case "Timezone":
 
                 $attr['class'] .= ' select2';
 
-                $form_builder->add($bv->field_name, TimezoneType::class, array(
+                $form_builder->add($bv->field_name, TimezoneType::class, field_params([
                     'label' => $bv->field_label,
                     //'choice_value' => '',
                     'placeholder' => 'Select a timezone',
                     'attr'	  => $attr
-                ));
+                ]));
 
                 break;
             case "Password":
 
                 $output_after .= '<script src="https://cdnjs.cloudflare.com/ajax/libs/hideshowpassword/2.0.10/hideShowPassword.min.js"></script><link rel="stylesheet" href="/css/pw.wink.css">';
 
-                $form_builder->add($bv->field_name, PasswordType::class, array(
+                $form_builder->add($bv->field_name, PasswordType::class, field_params([
                     'label' => $bv->field_label,
                     //'placeholder' => 'Choose a password',
                     'attr'	  => $attr
-                ));
+                ]));
 
-//				$form_builder->add($bv->field_name.'-check', PasswordType::class, array(
+//				$form_builder->add($bv->field_name.'-check', PasswordType::class, field_params([
 //					'label' => 'Type it again',
 //					//'placeholder' => 'Choose a password',
 //					'attr'	  => $attr
-//				));
+//				]));
 
                 break;
             case "Dropdown":
@@ -449,7 +457,7 @@ $app->match('/question', function (Request $request) use ($app) {
 
                 $data = $prev_answer_id;
 
-                $form_builder->add($bv->field_name, ChoiceType::class, array(
+                $form_builder->add($bv->field_name, ChoiceType::class, field_params([
                     'label' => $bv->field_label,
                     'choices' => $choices,
                     'expanded' => !$dropdown,
@@ -458,7 +466,7 @@ $app->match('/question', function (Request $request) use ($app) {
                     'data'	  => $data,
                     //'label_attr'	  => ['class'=>'btn btn-primary'],
                     //'choice_attr'	  => ['class'=>'xyz']
-                ));
+                ]));
                 unset($dropdown);
 
                 break;
@@ -473,32 +481,32 @@ $app->match('/question', function (Request $request) use ($app) {
                     $choices[$s->answer] = $s->id;
                 }
 
-                $form_builder->add($bv->field_name, ChoiceType::class, array(
+                $form_builder->add($bv->field_name, ChoiceType::class, field_params([
                     'label' => $bv->field_label,
                     'choices' => $choices,
                     'expanded' => true,
                     'multiple' => true,
                     'attr'	  => $attr
-                ));
+                ]));
 
                 break;
             case "UploadImage":
             case "UploadDoc":
             case "UploadFile":
 
-                $form_builder->add($bv->field_name, FileType::class, array(
+                $form_builder->add($bv->field_name, FileType::class, field_params([
                     'label' => $bv->field_label,
                     'attr'	  => $attr
-                ));
+                ]));
 
                 break;
             case "URL":
 
-                $form_builder->add($bv->field_name, URLType::class, array(
+                $form_builder->add($bv->field_name, URLType::class, field_params([
                     'label' => $bv->field_label,
                     'attr'	  => $attr,
                     'data'	  => 'http://'
-                ));
+                ]));
 
                 break;
             case "MapLocation":
@@ -511,10 +519,10 @@ $app->match('/question', function (Request $request) use ($app) {
 
                 $output_before .= file_get_contents($bv->base_path.'/templates/map.html');
 
-                $form_builder->add($bv->field_name, TextType::class, array(
+                $form_builder->add($bv->field_name, TextType::class, field_params([
                     'label' => $bv->field_label,
                     'attr'	  => $attr,
-                ));
+                ]));
 
                 break;
             case "Sortable":
@@ -535,11 +543,11 @@ $app->match('/question', function (Request $request) use ($app) {
 
                 $output_before .= get_include($bv->base_path.'templates/sortable.html');
 
-                $form_builder->add($bv->field_name, TextType::class, array(
+                $form_builder->add($bv->field_name, TextType::class, field_params([
                     'label' => $bv->field_label,
                     'attr'	  => $attr,
                     'data'	  => 'sorted',
-                ));
+                ]));
 
                 break;
             case "Notice":
@@ -548,12 +556,12 @@ $app->match('/question', function (Request $request) use ($app) {
 				<p>'.nl2br($bv->question->question_note).'</div>';
                 $attr['html'] = $html;
 
-                $form_builder->add(sanitize_user($bv->field_name), CustomcodeType::class, array(
+                $form_builder->add(sanitize_user($bv->field_name), CustomcodeType::class, field_params([
                     // 'label' => $bv->field_label,
                     // 'data' => $bv->field_label,
                     'attr'	  => $attr,
                     // 'html'	  => $output_after
-                ));
+                ]));
 
                 break;
             case "Include":
@@ -562,27 +570,27 @@ $app->match('/question', function (Request $request) use ($app) {
 				' . get_include($bv->base_path.'custom/'.$bv->field_name).'</div>';
                 $attr['html'] = $html;
 
-                $form_builder->add(sanitize_user($bv->field_name), CustomcodeType::class, array(
+                $form_builder->add(sanitize_user($bv->field_name), CustomcodeType::class, field_params([
                     // 'label' => $bv->field_label,
                     // 'data' => $bv->field_label,
                     'attr'	  => $attr,
                     // 'html'	  => $output_after
-                ));
+                ]));
 
                 break;
             default:
 
                 if ($bv->field_name) {
-                    $form_builder->add($bv->field_name, TextType::class, array(
+                    $form_builder->add($bv->field_name, TextType::class, field_params([
                     'label' => $bv->field_label,
                     'attr'	  => $attr
-                ));
+                ]));
                 }
 
                 break;
         }
 
-        //		$form_builder->add("answer_type", HiddenType::class, array(
+        //		$form_builder->add("answer_type", HiddenType::class, field_params([
 //		    'data' => $bv->question->answer_type,
 //		));
     }
