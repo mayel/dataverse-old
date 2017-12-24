@@ -26,7 +26,7 @@
        	{% if current_step >1 %}
        	    <a href="?before={{current_step|e}}" onclick="return back_with_fallback(this)" id="back" class="btn-sm btn btn-info">Back</a>
 				{% endif %}
-				{% if current_step and has_more_questions %}
+				{% if current_step and has_more_questions and skip_allowed %}
        	    <a href="?after={{current_step|e}}" id="skip" class="btn-sm btn btn-warning">Skip</a>
        	{% endif %}
       </div>

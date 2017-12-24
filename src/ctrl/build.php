@@ -7,6 +7,7 @@ use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
@@ -71,7 +72,7 @@ $app->match('/build/questionnaire', function (Request $request) use ($app) {
         'attr'=>['placeholder' => 'survey'],
     ])
     ->add('continue_label', null, [
-        'label' => "Customise 'Continue' buttons",
+        'label' => "Default text for 'Continue' buttons",
         'attr'=>['placeholder' => 'Continue'],
     ]);
 
@@ -322,9 +323,14 @@ $app->match('/build/question', function (Request $request) use ($app) {
             'required'	  => false,
         ])
         ->add('continue_label', null, [
-            'label' => "Custom text for button (if applicable)",
+            'label' => "Custom text for 'Continue' button",
             'attr'=>['placeholder' => 'Continue'],
             'required'	  => false,
+        ])
+        ->add('skip_allowed', CheckboxType::class, [
+            'label' => "This question should not be skipped",
+            'required'	  => false,
+            'data' => false
         ])
        ->add('answer', CollectionType::class, array(
            // each entry in the array will be an "email" field

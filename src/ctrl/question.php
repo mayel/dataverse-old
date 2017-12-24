@@ -58,6 +58,7 @@ $app->match('/question', function (Request $request) use ($app) {
     $data = array(
         'ts_latest' => R::isoDateTime(),
     );
+    $step_skip_allowed = true;
 
     $bv->questionnaire_id = $_GET['questionnaire'] ? $_GET['questionnaire'] : $app['session']->get('questionnaire'); // get from session
 
@@ -225,6 +226,11 @@ $app->match('/question', function (Request $request) use ($app) {
         $attr['value'] = $prev_response ? $prev_response : $bv->question->question_default_answer;
 
         $field_params = [];
+
+        $field_params['required'] = !$bv->question->skip_allowed;
+        if (!$bv->question->skip_allowed) {
+            $step_skip_allowed = false;
+        }
 
         switch ($bv->question->answer_type) {
             case "LongText":
@@ -652,5 +658,5 @@ $app->match('/question', function (Request $request) use ($app) {
     }
 
     // display the form
-    return $app['twig']->render('question.html.twig', array('form' => $form->createView(), 'output_before' => $output_before, 'output_after' => $output_after, 'current_step' => $bv->current_step, 'has_more_questions' => $bv->has_more_questions , 'title' => $bv->questionnaire->questionnaire_title , 'continue_label' => ($bv->questionnaire->continue_label ? $bv->questionnaire->continue_label : 'Continue')));
+    return $app['twig']->render('question.html.twig', array('form' => $form->createView(), 'output_before' => $output_before, 'output_after' => $output_after, 'current_step' => $bv->current_step, 'has_more_questions' => $bv->has_more_questions , 'title' => $bv->questionnaire->questionnaire_title , 'continue_label' => ($bv->questionnaire->continue_label ? $bv->questionnaire->continue_label : 'Continue'), 'skip_allowed'=>$step_skip_allowed));
 });
