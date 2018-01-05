@@ -81,11 +81,14 @@ $app->get('/payments/setup/stripe', function () use ($app) {
 
     }
 
-	} catch (Exception $e) {
+	} catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
 
-		// Failed to get user details
-		// print_r($e);
-		$msg .= ('Oh dear... An error occured. ');
+    // Failed to get the access token or user details.
+    $msg .= ('Oh dear... '.$e->getMessage());
+
+  } catch (Exception $e) {
+
+		$msg .= ('Oh dear... An unknown error occured. ');
 	}
 
 	return $msg;
