@@ -58,8 +58,8 @@ $app->match('/build/questionnaire', function (Request $request) use ($app) {
     $app['session']->set('questionnaire', $bv->questionnaire->id);
 
 
-    $popup = '<script type="text/javascript" src="'.$bv->config->home_url.'embed.js.php?id='.$bv->questionnaire->id.'"></script><button onclick="return dataverse_open_form()" type="button">Open Questionnaire</button>';
-    $embed .= '<iframe style="height:500px; width:100%; border: none;" src="'.$bv->config->home_url.'question?embedded&amp;questionnaire='.$bv->questionnaire->id.'&step=1"></iframe>';
+    $popup = '<script type="text/javascript" src="'.$bv->config->home_url.'/embed.js.php?id='.$bv->questionnaire->id.'"></script><button onclick="return dataverse_open_form()" type="button">Open Questionnaire</button>';
+    $embed .= '<iframe style="height:500px; width:100%; border: none;" src="'.$bv->config->home_url.'/question?embedded&amp;questionnaire='.$bv->questionnaire->id.'&step=1"></iframe>';
 
     $form_builder = $app['my.formFactory']->createBuilder(FormType::class, $bv->questionnaire);
 
