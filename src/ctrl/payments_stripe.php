@@ -26,8 +26,9 @@ class DataverseStripe extends AdamPaterson\OAuth2\Client\Provider\Stripe {
 
 		$msg .= '<br>Access Token: ' . $access_token->getToken() . "<br>";
     $msg .= 'Refresh Token: ' . $access_token->getRefreshToken() . "<br>";
-    $msg .= 'Expired in: ' . $access_token->getExpires() . "<br>";
-    $msg .= 'Already expired? ' . ($access_token->hasExpired() ? 'expired' : 'not expired') . "<br>";
+
+    // $msg .= 'Expired in: ' . $access_token->getExpires() . "<br>"; // apparently no expiry
+    // $msg .= 'Already expired? ' . ($access_token->hasExpired() ? 'expired' : 'not expired') . "<br>";
 
 	// With an access token, let's now get the user's details
 		$account = $this->getResourceOwner($access_token);
@@ -55,15 +56,15 @@ $app->get('/payments/setup/stripe', function () use ($app) {
 
 	  $provider = new \DataverseStripe();
 
-	  if (isset($_GET['access_token'])) { // can look up a user's data with a previously know access_token
+	  if (isset($_GET['stoken'])) { // can look up a user's data with a previously know access_token
 
-			$access_token = $_GET['access_token'];
+			$access_token = $_GET['stoken'];
 
 		} elseif (!isset($_GET['code'])) { // If we don't have an access_token or authorization code then redirect the user to get one
 
 	    $authUrl = $provider->getAuthorizationUrl();
 	    $_SESSION['oauth2state'] = $provider->getState();
-	    header('Location: '.$authUrl);
+	    if($authUrl) header('Location: '.$authUrl);
 	    exit;
 
 		} elseif (!empty($_GET['state']) && ($_GET['state'] == $_SESSION['oauth2state'])) { // Check given state against previously stored one to mitigate CSRF attack
