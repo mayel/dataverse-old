@@ -12,7 +12,8 @@ $bv->dbcreds['port'] = 3306;
 
 //$bv->db_path = '/custom/db.txt'; // only for sqlite
 
-$bv->config->home_url = 'https://my_dataverse.org/'; // must be HTTPS
+$bv->config->app_name = 'Dataverse';
+$bv->config->home_url = 'https://my_dataverse.org/'; // must be HTTPS, no trailing slash
 
 // for notification emails
 $bv->config->mail->from = 'Support <support@my_dataverse.org>';

@@ -128,7 +128,7 @@ $app->match('/question', function (Request $request) use ($app) {
         // $bv->questions = R::findAll( 'question', ' questionnaire_id = ? AND step = ? ORDER BY step_order ASC ', [$bv->questionnaire->id, $bv->current_step] );
         // R::fancyDebug( TRUE );
 
-        $steps = R::find('step', ' questionnaire_id = ? AND step = ? ORDER BY `order` ASC', [$bv->questionnaire->id, $bv->current_step]);
+        $steps = R::find('step', ' questionnaire_id = ? AND step = ? ORDER BY "order" ASC', [$bv->questionnaire->id, $bv->current_step]);
 
         foreach ($steps as $s) {
             // var_dump($s, $s->question);

@@ -8,7 +8,7 @@ function dataverse_open_form() {
 
 	$('<link>').attr('rel','stylesheet')
 	  .attr('type','text/css')
-	  .attr('href',"<?=$bv->config->home_url?>css/embed.css?v2.3")
+	  .attr('href',"<?=$bv->config->home_url?>/css/embed.css?v2.3")
 	  .appendTo('head');
 
 	$('body').append(
@@ -31,7 +31,7 @@ function dataverse_open_form() {
 	  $('<iframe/>')
 	);
 
-  $('#dataverse_contain_embed iframe').attr('src', "<?=$bv->config->home_url?>question?embedded&questionnaire=<?=$_GET['id']?>&step=1");
+  $('#dataverse_contain_embed iframe').attr('src', "<?=$bv->config->home_url?>/question?embedded&questionnaire=<?=$_GET['id']?>&step=1");
   $('#dataverse_contain_embed iframe').on('load', function() {
       $('#dataverse_loader').fadeOut(function() {
           $('#dataverse_contain_embed').fadeIn();

@@ -453,7 +453,7 @@ function question_delete($id)
 
 function questionnaire_steps($id)
 {
-    return R::find('step', ' questionnaire_id = ? ORDER BY step ASC, `order` ASC ', [ $id ]);
+    return R::find('step', ' questionnaire_id = ? ORDER BY step ASC, "order" ASC ', [ $id ]);
 }
 
 function step_get($id)

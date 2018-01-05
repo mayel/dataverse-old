@@ -67,7 +67,7 @@ $app->get('/social/app/mastodon', function () use ($app) {
 
 	$t = new \DataverseMastodon();
 
-	if($_GET['code']){}
+	if($_GET['code']){
 
 		$token_info = $t->getAccessToken($_GET['code']); //The access token you received by oauth redirect
 		//The above '$token_info' will now give you a bearer token (If successfull), you also need to store that and keep it safe!
