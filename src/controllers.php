@@ -36,6 +36,8 @@ include_once('ctrl/api.php');
 
 // include_once('ctrl/oauth_server.php');
 
+include_once('ctrl/social_mastodon.php');
+
 include_once('ctrl/payments_stripe.php');
 
 include_once('ctrl/dev.php');

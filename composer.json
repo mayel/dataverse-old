@@ -34,7 +34,8 @@
         "league/csv": "^8.2",
         "authbucket/oauth2-php": "^4.2",
         "adam-paterson/oauth2-stripe": "^2.0",
-        "league/oauth2-client": "^2.2"
+        "league/oauth2-client": "^2.2",
+        "thecodingcompany/php-mastodon": "^1.0"
     },
     "autoload": {
         "psr-0": { "": "src/" }

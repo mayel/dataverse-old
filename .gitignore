@@ -22,6 +22,8 @@ composer.lock
 custom/*
 custom_misc
 custom
+custom_*
+
 templates/bootstrap_4_layout.html.twig
 templates/bootstrap_base_layout.html.twig
 templates/form_table_layout.html.twig

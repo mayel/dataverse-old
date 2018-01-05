@@ -1,5 +1,4 @@
 <?php
-use Symfony\Component\HttpFoundation\Request;
 
 class DataverseStripe extends AdamPaterson\OAuth2\Client\Provider\Stripe {
 
@@ -100,5 +99,5 @@ $app->get('/payments/setup/stripe', function () use ($app) {
 	}
 
 	return $msg;
-})
-;
+	
+});
