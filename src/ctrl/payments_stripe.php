@@ -7,7 +7,7 @@ $app->get('/payments/setup/stripe', function () use ($app) {
   $provider = new \AdamPaterson\OAuth2\Client\Provider\Stripe([
     'clientId'          => $bv->config->stripe->connect->client,
     'clientSecret'      => $bv->config->stripe->connect->secret,
-    'redirectUri'       => 'http://local.hq.thecopy.team/payments/setup/stripe',
+    'redirectUri'       => $bv->config->home_url.'/payments/setup/stripe',
 	]);
 
   if (!isset($_GET['code'])) {
@@ -20,7 +20,7 @@ $app->get('/payments/setup/stripe', function () use ($app) {
 
     // Check given state against previously stored one to mitigate CSRF attack
   } elseif (empty($_GET['state']) || ($_GET['state'] !== $_SESSION['oauth2state'])) {
-		
+
       unset($_SESSION['oauth2state']);
       return ('Invalid state');
 
