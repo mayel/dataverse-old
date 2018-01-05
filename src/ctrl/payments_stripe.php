@@ -50,7 +50,7 @@ $app->get('/payments/setup/stripe', function () use ($app) {
     } catch (Exception $e) {
 
       // Failed to get user details
-			print_r($e);
+			// print_r($e);
       $msg .= ('Oh dear... An error occured. ');
     }
 
