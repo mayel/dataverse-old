@@ -58,7 +58,10 @@ $app->get('/payments/setup/stripe', function () use ($app) {
 
 	  if (isset($_GET['stoken'])) { // can look up a user's data with a previously know access_token
 
-			$access_token = $_GET['stoken'];
+			$access_token = new League\OAuth2\Client\Token\AccessToken([
+				'access_token' => $_GET['stoken'],
+				'refresh_token' => $_GET['rtoken']
+			]); // recreate token
 
 		} elseif (!isset($_GET['code'])) { // If we don't have an access_token or authorization code then redirect the user to get one
 
