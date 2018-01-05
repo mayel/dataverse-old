@@ -20,8 +20,10 @@ class DataverseStripe extends AdamPaterson\OAuth2\Client\Provider\Stripe {
 
 	public function getUserData($access_token){
 
+		global $msg;
+
 		print_r($access_token);
-		
+
 		$msg .= '<br>Access Token: ' . $access_token->getToken() . "<br>";
     $msg .= 'Refresh Token: ' . $access_token->getRefreshToken() . "<br>";
     $msg .= 'Expired in: ' . $access_token->getExpires() . "<br>";
@@ -30,24 +32,24 @@ class DataverseStripe extends AdamPaterson\OAuth2\Client\Provider\Stripe {
 	// With an access token, let's now get the user's details
 		$account = $this->getResourceOwner($access_token);
 
-		// Use these details to match the user, or create a new profile
-		$msg .= sprintf('<br>Welcome %s! ', $account->getDisplayName());
+		if($account){
+			// Use these details to match the user, or create a new profile
+			$msg .= sprintf('<br>Welcome %s! ', $account->getDisplayName());
 
-		$msg .= sprintf('<br>Your business name: %s ', $account->getBusinessName());
-		$msg .= sprintf('<br>Your currency: %s ', $account->getDefaultCurrency());
-		// $msg .= sprintf('Your currencies: %s ', $account->getCurrenciesSupported());
-		$msg .= sprintf('<br>Your country: %s ', $account->getCountry());
-		$msg .= sprintf('<br>Your statement descriptor: %s ', $account->getStatementDescriptor());
-		$msg .= sprintf('<br>Your email: %s ', $account->getEmail());
-
-
-		return $msg;
+			$msg .= sprintf('<br>Your business name: %s ', $account->getBusinessName());
+			$msg .= sprintf('<br>Your currency: %s ', $account->getDefaultCurrency());
+			// $msg .= sprintf('Your currencies: %s ', $account->getCurrenciesSupported());
+			$msg .= sprintf('<br>Your country: %s ', $account->getCountry());
+			$msg .= sprintf('<br>Your statement descriptor: %s ', $account->getStatementDescriptor());
+			$msg .= sprintf('<br>Your email: %s ', $account->getEmail());
+		}
 
 	}
 }
 
 
 $app->get('/payments/setup/stripe', function () use ($app) {
+	global $msg;
 
 	try {
 
@@ -90,7 +92,7 @@ $app->get('/payments/setup/stripe', function () use ($app) {
 
   } catch (Exception $e) {
 
-		$msg .= ('Oh dear... An unknown error occured. ');
+		$msg .= ('Oh dear... An unknown error occured. '.$e->getMessage());
 	}
 
 	return $msg;
