@@ -31,20 +31,20 @@
         "php-http/message": "^1.5",
         "kosinix/paginator": "dev-master",
         "kosinix/pagination-silex": "dev-master",
-        "league/csv": "^8.2"
+        "league/csv": "^8.2",
+        "authbucket/oauth2-php": "^4.2",
+        "adam-paterson/oauth2-stripe": "^2.0",
+        "league/oauth2-client": "^2.2"
     },
     "autoload": {
         "psr-0": { "": "src/" }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "2.0.x-dev"
-        }
     },
     "scripts": {
         "run": [
             "echo 'Started web server on http://localhost:8888'",
             "php -S localhost:8888 -t web"
         ]
-    }
+    },
+		"minimum-stability": "dev",
+    "prefer-stable": true
 }

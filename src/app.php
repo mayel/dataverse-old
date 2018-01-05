@@ -28,23 +28,8 @@ $app->register(new HttpFragmentServiceProvider());
 
 $app->register(new Silex\Provider\SessionServiceProvider());
 
-require_once('user_provider.php');
-$app->register(new Silex\Provider\SecurityServiceProvider(), array(
-    'security.firewalls' => array(
-        'admin' => array(
-            'pattern' => '^/adminZZZ',
-            'form' => true,
-            'http' => true,
-            'users' => function () {
-                return new UserProvider();
-            },
-        ),
-        'unsecured' => array(
-            'anonymous' => true, // make the user info accessible in non-secured areas
-        )
-    )
 
-));
+require_once('user_auth.php');
 
 
 // Paginator

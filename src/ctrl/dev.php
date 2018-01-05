@@ -40,6 +40,16 @@ $app['my.formFactory'] = Forms::createFormFactoryBuilder()
     ->getFormFactory()
 ;
 
+$app->get('/pinfo', function () use ($app) {
+    phpinfo();
+})
+;
+
+$app->get('/adminZZZ', function () use ($app) {
+    return "Auth OK";
+})
+;
+
 // TEMP
 
 $app->get('/admin/test', function () use ($app) {
