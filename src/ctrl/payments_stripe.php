@@ -1,10 +1,18 @@
 <?php
 use Symfony\Component\HttpFoundation\Request;
 
+class DataverseStripe extends AdamPaterson\OAuth2\Client\Provider\Stripe
+{
+	public function getDefaultScopes()
+	{
+			return ['read_write'];
+	}
+}
+
 $app->get('/payments/setup/stripe', function () use ($app) {
   global $bv;
 
-  $provider = new \AdamPaterson\OAuth2\Client\Provider\Stripe([
+  $provider = new \DataverseStripe([
     'clientId'          => $bv->config->stripe->connect->client,
     'clientSecret'      => $bv->config->stripe->connect->secret,
     'redirectUri'       => $bv->config->home_url.'/payments/setup/stripe',
@@ -21,7 +29,7 @@ $app->get('/payments/setup/stripe', function () use ($app) {
   } elseif (empty($_GET['state']) || ($_GET['state'] !== $_SESSION['oauth2state'])) {
 
       unset($_SESSION['oauth2state']);
-      return ('Invalid state');
+      return ('Invalid state. ');
 
   } else {
 
@@ -38,9 +46,15 @@ $app->get('/payments/setup/stripe', function () use ($app) {
       // We got an access token, let's now get the user's details
       $account = $provider->getResourceOwner($access_token);
 
-      // Use these details to create a new profile
+      // Use these details to match the user, or create a new profile
       $msg .= sprintf('Welcome %s! ', $account->getDisplayName());
 
+			$msg .= sprintf('Your business name: %s ', $account->getBusinessName());
+			$msg .= sprintf('Your currency: %s ', $account->getDefaultCurrency());
+			// $msg .= sprintf('Your currencies: %s ', $account->getCurrenciesSupported());
+			$msg .= sprintf('Your country: %s ', $account->getCountry());
+			$msg .= sprintf('Your statement descriptor: %s ', $account->getStatementDescriptor());
+			$msg .= sprintf('Your email: %s ', $account->getEmail());
 
 			// Use this to interact with an API on the users behalf
 			$user_token = $access_token->getToken();
