@@ -47,5 +47,9 @@
         ]
     },
 		"minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "require-dev": {
+        "symfony/yaml": "^3",
+				"symfony/routing": "^3"
+    }
 }
